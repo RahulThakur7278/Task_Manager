@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 export const registerSchema = z.object({
   name: z.string().min(1, 'Name is required').max(50, 'Name cannot exceed 50 characters').trim(),
   email: z.string().email('Please provide a valid email').trim().toLowerCase(),
+  phone: z.string().min(1, 'Phone number is required').trim(),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -32,14 +33,14 @@ const refreshCookieOptions = {
  */
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, phone, password } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new AppError('User with this email already exists', 400);
     }
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name, email, phone, password });
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
@@ -52,6 +53,7 @@ export const register = async (req, res, next) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
       },
       accessToken,
     });

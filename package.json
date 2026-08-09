@@ -1,5 +1,6 @@
 {
   "name": "task-manager",
+  "type": "module",
   "version": "1.0.0",
   "description": "Advanced Task Manager — Full-Stack MERN Application",
   "scripts": {
