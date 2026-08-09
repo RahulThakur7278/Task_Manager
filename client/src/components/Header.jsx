@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
-import { HiOutlineBars3, HiXMark, HiChartBarSquare, HiClipboardDocumentList, HiArrowRightOnRectangle } from 'react-icons/hi2';
+import { HiOutlineBars3, HiXMark, HiArrowRightOnRectangle } from 'react-icons/hi2';
+import { MdDashboard } from "react-icons/md";
+import { GoGraph } from "react-icons/go";
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -10,14 +12,21 @@ const Header = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const getInitials = (fullName) => {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+  };
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
 
   const navLinks = [
-    { to: '/', label: 'Dashboard', icon: HiClipboardDocumentList },
-    { to: '/analytics', label: 'Analytics', icon: HiChartBarSquare },
+    { to: '/', label: 'Dashboard', icon: MdDashboard },
+    { to: '/analytics', label: 'Analytics', icon: GoGraph },
   ];
 
   return (
@@ -29,51 +38,52 @@ const Header = () => {
         boxShadow: '0 1px 3px var(--shadow-color)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 no-underline">
-            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">T</span>
-            </div>
-            <span
-              className="text-xl font-bold hidden sm:block"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              Task<span className="text-gradient">Flow</span>
-            </span>
-          </Link>
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 no-underline"
-                style={{
-                  backgroundColor: location.pathname === to ? 'var(--color-primary-500)' : 'transparent',
-                  color: location.pathname === to ? '#fff' : 'var(--text-secondary)',
-                }}
-                onMouseEnter={(e) => {
-                  if (location.pathname !== to) {
-                    e.target.style.backgroundColor = 'var(--hover-bg)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (location.pathname !== to) {
-                    e.target.style.backgroundColor = 'transparent';
-                  }
-                }}
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 items-center h-16 w-full ">
+          {/* Left Side: Logo */}
+          <div className="flex justify-start">
+            <Link to="/" className="flex items-center gap-2 no-underline">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg gradient-primary">
+                <span className="text-white font-bold text-lg">T</span>
+              </div>
+              <span
+                className="text-xl font-bold hidden sm:block"
+                style={{ color: 'var(--text-primary)' }}
               >
-                <Icon className="w-4 h-4" />
-                {label}
-              </Link>
-            ))}
-          </nav>
+                Task<span className="text-gradient">Flow</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Center: Desktop Nav */}
+          <div className="hidden md:flex justify-center">
+            <nav className="flex items-center gap-3">
+              {navLinks.map(({ to, label, icon: Icon }) => {
+                const isActive = location.pathname === to;
+                
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    className="group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 no-underline hover:bg-[var(--hover-bg)]"
+                    style={{ backgroundColor: isActive ? 'transparent' : 'transparent' }}
+                  >
+                    <Icon 
+                      className={`w-4 h-4 transition-colors duration-200 ${isActive ? 'text-[#6366f1]' : 'text-[var(--text-secondary)] group-hover:text-[#6366f1]'}`} 
+                    />
+                    <span
+                      className={`transition-all duration-200 ${isActive ? 'text-gradient' : 'text-[var(--text-secondary)] group-hover:text-gradient'}`}
+                    >
+                      {label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
 
           {/* Right Side */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-end gap-3">
             <ThemeToggle />
 
             {/* User Info */}
@@ -81,19 +91,12 @@ const Header = () => {
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg"
               style={{ backgroundColor: 'var(--hover-bg)' }}
             >
-              <div
-                className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center"
-              >
+              <div className="w-7 h-7 rounded-full flex items-center justify-center gradient-primary">
                 <span className="text-white text-xs font-semibold">
-                  {user?.name?.charAt(0).toUpperCase()}
+                  {getInitials(user?.name)}
                 </span>
               </div>
-              <span
-                className="text-sm font-medium"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {user?.name}
-              </span>
+
             </div>
 
             {/* Logout */}
@@ -113,7 +116,7 @@ const Header = () => {
                 e.target.style.backgroundColor = 'transparent';
               }}
             >
-              <HiArrowRightOnRectangle className="w-4 h-4" />
+              <HiArrowRightOnRectangle className="w-6 h-6" />
               Logout
             </button>
 
@@ -145,8 +148,8 @@ const Header = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium no-underline transition-colors duration-200"
                 style={{
-                  backgroundColor: location.pathname === to ? 'var(--color-primary-500)' : 'transparent',
-                  color: location.pathname === to ? '#fff' : 'var(--text-secondary)',
+                  backgroundColor: 'transparent',
+                  color: location.pathname === to ? 'var(--color-primary-500)' : 'var(--text-secondary)',
                 }}
               >
                 <Icon className="w-4 h-4" />
