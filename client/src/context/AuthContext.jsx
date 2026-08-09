@@ -31,8 +31,8 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const register = useCallback(async (name, email, password) => {
-    const { data } = await api.post('/auth/register', { name, email, password });
+  const register = useCallback(async (name, email, phone, password) => {
+    const { data } = await api.post('/auth/register', { name, email, phone, password });
     setAccessToken(data.accessToken);
     setUser(data.user);
     return data;

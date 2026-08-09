@@ -48,32 +48,20 @@
   --color-surface-950: #09090b;
 
   /* Animations */
-  --animate-slide-in: slide-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
   --animate-slide-out: slide-out 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
   --animate-fade-in: fade-in 0.4s ease-out forwards;
   --animate-fade-in-up: fade-in-up 0.5s ease-out forwards;
   --animate-shake: shake 0.5s ease-in-out;
   --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
-  --animate-spin-slow: spin 3s linear infinite;
 }
 
 /* ========== KEYFRAMES ========== */
-@keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(-20px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
 @keyframes slide-out {
   from {
     opacity: 1;
     transform: translateX(0) scale(1);
   }
+
   to {
     opacity: 0;
     transform: translateX(20px) scale(0.95);
@@ -81,8 +69,13 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fade-in-up {
@@ -90,6 +83,7 @@
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -97,53 +91,50 @@
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 @keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 /* ========== CUSTOM UTILITIES ========== */
-@utility glass {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-@utility glass-light {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
 @utility gradient-primary {
   background: linear-gradient(135deg, var(--color-primary-500), var(--color-accent-500));
 }
 
-@utility gradient-bg {
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-}
-
-@utility gradient-bg-light {
-  background: linear-gradient(135deg, #e0e7ff 0%, #f0f9ff 50%, #f5f3ff 100%);
-}
-
 @utility text-gradient {
-  background: linear-gradient(135deg, var(--color-primary-400), var(--color-accent-400));
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-accent-500));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-@utility scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-surface-400) transparent;
 }
 
 /* ========== BASE STYLES ========== */
@@ -218,10 +209,6 @@ body {
 }
 
 /* ========== FOCUS STYLES ========== */
-*:focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-}
 
 /* Recharts dark mode support */
 [data-theme="dark"] .recharts-text {

@@ -8,25 +8,26 @@ const ThemeToggle = () => {
     <button
       id="theme-toggle-btn"
       onClick={toggleTheme}
-      className="relative w-14 h-7 rounded-full transition-all duration-300 focus:outline-none
-        cursor-pointer flex items-center px-1"
+      className="p-2 rounded-lg cursor-pointer border-none transition-colors duration-200"
       style={{
-        backgroundColor: theme === 'dark' ? 'var(--color-primary-600)' : 'var(--color-surface-300)',
+        backgroundColor: 'transparent',
+        color: 'var(--text-secondary)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
+        e.currentTarget.style.color = 'var(--text-primary)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+        e.currentTarget.style.color = 'var(--text-secondary)';
       }}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
-      <span
-        className="absolute w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center"
-        style={{
-          transform: theme === 'dark' ? 'translateX(28px)' : 'translateX(0)',
-        }}
-      >
-        {theme === 'dark' ? (
-          <HiMoon className="w-3 h-3 text-primary-600" />
-        ) : (
-          <HiSun className="w-3 h-3 text-warning-500" />
-        )}
-      </span>
+      {theme === 'dark' ? (
+        <HiMoon className="w-5 h-5" />
+      ) : (
+        <HiSun className="w-5 h-5" />
+      )}
     </button>
   );
 };

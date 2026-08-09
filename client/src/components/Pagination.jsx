@@ -25,52 +25,56 @@ const Pagination = () => {
   };
 
   return (
-    <div className="flex items-center justify-between pt-4">
+    <div className="flex items-center justify-between p-5">
       <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
         {totalTasks} task{totalTasks !== 1 ? 's' : ''} total
       </p>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <button
           id="prev-page-btn"
           onClick={() => setPage(page - 1)}
           disabled={page <= 1}
-          className="p-2 rounded-lg transition-all duration-200 cursor-pointer border-none
-            disabled:opacity-30 disabled:cursor-not-allowed"
+          className="px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer border-none
+            disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 text-sm font-semibold"
           style={{
             backgroundColor: 'var(--hover-bg)',
             color: 'var(--text-secondary)',
           }}
         >
           <HiChevronLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Prev</span>
         </button>
 
-        {getPageNumbers().map((num) => (
-          <button
-            key={num}
-            onClick={() => setPage(num)}
-            className="w-8 h-8 rounded-lg text-xs font-semibold transition-all duration-200
-              cursor-pointer border-none"
-            style={{
-              backgroundColor: page === num ? 'var(--color-primary-500)' : 'transparent',
-              color: page === num ? '#fff' : 'var(--text-secondary)',
-            }}
-          >
-            {num}
-          </button>
-        ))}
+        <div className="flex items-center gap-1 mx-2">
+          {getPageNumbers().map((num) => (
+            <button
+              key={num}
+              onClick={() => setPage(num)}
+              className="w-8 h-8 rounded-lg text-sm font-bold transition-all duration-200
+                cursor-pointer border-none"
+              style={{
+                backgroundColor: page === num ? 'var(--color-primary-500)' : 'transparent',
+                color: page === num ? '#fff' : 'var(--text-secondary)',
+              }}
+            >
+              {num}
+            </button>
+          ))}
+        </div>
 
         <button
           id="next-page-btn"
           onClick={() => setPage(page + 1)}
           disabled={page >= totalPages}
-          className="p-2 rounded-lg transition-all duration-200 cursor-pointer border-none
-            disabled:opacity-30 disabled:cursor-not-allowed"
+          className="px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer border-none
+            disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 text-sm font-semibold"
           style={{
             backgroundColor: 'var(--hover-bg)',
             color: 'var(--text-secondary)',
           }}
         >
+          <span className="hidden sm:inline">Next</span>
           <HiChevronRight className="w-4 h-4" />
         </button>
       </div>
