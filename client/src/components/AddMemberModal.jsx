@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { HiXMark, HiOutlineUser, HiOutlinePhone, HiOutlineEnvelope, HiOutlineLockClosed } from 'react-icons/hi2';
+import api from '../api/axios';
+import toast from 'react-hot-toast';
 
-const AddMemberModal = ({ isOpen, onClose }) => {
+const AddMemberModal = ({ isOpen, onClose, onMemberAdded }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -16,13 +18,18 @@ const AddMemberModal = ({ isOpen, onClose }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('New member data:', formData);
-    // TODO: Add API call to register the new member
-    onClose();
-    // Reset form after close
-    setFormData({ name: '', phone: '', email: '', password: '' });
+    try {
+      await api.post('/users', formData);
+      toast.success('Team member added successfully!');
+      if (onMemberAdded) onMemberAdded();
+      onClose();
+      // Reset form after close
+      setFormData({ name: '', phone: '', email: '', password: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add member');
+    }
   };
 
   return (

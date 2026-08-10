@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { HiOutlineCalendar, HiOutlineUserPlus, HiPlus, HiOutlineLink, HiOutlineTrash, HiXMark } from 'react-icons/hi2';
+import api from '../api/axios';
+import toast from 'react-hot-toast';
+import SelectMembersModal from './SelectMembersModal';
 
 const TaskDetailsModal = ({ isOpen, onClose, task }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'Low',
+    status: 'Pending',
     dueDate: '',
   });
 
@@ -15,17 +19,21 @@ const TaskDetailsModal = ({ isOpen, onClose, task }) => {
   const [attachmentInput, setAttachmentInput] = useState('');
   const [attachments, setAttachments] = useState([]);
 
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+  const [assignees, setAssignees] = useState([]);
+
   useEffect(() => {
     if (task) {
       setFormData({
         title: task.title || '',
         description: task.description || '',
-        priority: task.priority ? task.priority.replace(' Priority', '') : 'Low',
-        dueDate: '2025-04-05', // Mocking a standard date format for the input
+        priority: task.priority || 'Low',
+        status: task.status || 'Pending',
+        dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
       });
-      // Mocking some checklist items since they aren't in the task summary
-      setChecklists(['Create Product Card', 'Develop Category Filter UI']);
-      setAttachments(Array.from({ length: task.attachments || 0 }, (_, i) => `https://example.com/file${i+1}.pdf`));
+      setChecklists(task.checklist || []);
+      setAssignees(task.assignees || []);
+      setAttachments(task.attachments || []);
     }
   }, [task]);
 
@@ -36,9 +44,15 @@ const TaskDetailsModal = ({ isOpen, onClose, task }) => {
 
   const addChecklist = () => {
     if (checklistInput.trim()) {
-      setChecklists([...checklists, checklistInput.trim()]);
+      setChecklists([...checklists, { title: checklistInput.trim(), completed: false }]);
       setChecklistInput('');
     }
+  };
+
+  const toggleChecklist = (indexToToggle) => {
+    setChecklists(checklists.map((item, index) => 
+      index === indexToToggle ? { ...item, completed: !item.completed } : item
+    ));
   };
 
   const removeChecklist = (indexToRemove) => {
@@ -56,10 +70,32 @@ const TaskDetailsModal = ({ isOpen, onClose, task }) => {
     setAttachments(attachments.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Update task:', { ...formData, checklists, attachments });
-    onClose();
+    try {
+      const payload = {
+        ...formData,
+        checklist: checklists,
+        assignees: assignees.map(a => a._id),
+        attachments,
+      };
+      await api.put(`/tasks/${task._id}`, payload);
+      toast.success('Task updated successfully!');
+      onClose();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update task');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    try {
+      await api.delete(`/tasks/${task._id}`);
+      toast.success('Task deleted successfully!');
+      onClose();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete task');
+    }
   };
 
   if (!isOpen || !task) return null;
@@ -81,7 +117,7 @@ const TaskDetailsModal = ({ isOpen, onClose, task }) => {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             Update Task
           </h1>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg text-sm font-semibold transition-colors">
+          <button type="button" onClick={handleDelete} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg text-sm font-semibold transition-colors">
             <HiOutlineTrash className="w-4 h-4" />
             Delete
           </button>
@@ -127,22 +163,41 @@ const TaskDetailsModal = ({ isOpen, onClose, task }) => {
             
             {/* Priority */}
             <div className="space-y-2">
-              <label htmlFor="priority" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Priority
-              </label>
-              <select
-                id="priority"
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.2em 1.2em' }}
-              >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
+                <label htmlFor="priority" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Priority
+                </label>
+                <select
+                  id="priority"
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.2em 1.2em' }}
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+
+              {/* Status */}
+              <div className="space-y-2">
+                <label htmlFor="status" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.2em 1.2em' }}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
 
             {/* Due Date */}
             <div className="space-y-2">
@@ -167,19 +222,26 @@ const TaskDetailsModal = ({ isOpen, onClose, task }) => {
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Assign To
               </label>
-              <div className="flex items-center gap-2 h-12">
-                <div className="flex -space-x-2">
-                  {task.assignees?.map((avatar, i) => (
-                    <img 
-                      key={i} 
-                      src={avatar} 
-                      alt="Assignee" 
-                      className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800"
-                    />
-                  ))}
-                </div>
-                <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 border-2 border-white dark:border-slate-800 transition-colors">
-                  <HiPlus className="w-4 h-4" />
+              <div className="flex items-center gap-3 h-12">
+                {assignees.length > 0 && (
+                  <div className="flex -space-x-2">
+                    {assignees.map((user) => (
+                      <img 
+                        key={user._id} 
+                        src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`} 
+                        alt={user.name || "Assignee"} 
+                        title={user.name}
+                        className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-800 shadow-sm"
+                      />
+                    ))}
+                  </div>
+                )}
+                <button 
+                  type="button" 
+                  onClick={() => setIsMemberModalOpen(true)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 border-2 border-white dark:border-slate-800 transition-colors shadow-sm shrink-0"
+                >
+                  <HiPlus className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -193,18 +255,19 @@ const TaskDetailsModal = ({ isOpen, onClose, task }) => {
             {checklists.length > 0 && (
               <ul className="mb-3 space-y-3">
                 {checklists.map((item, index) => (
-                  <li key={index} className="flex items-center justify-between bg-slate-50 dark:bg-slate-700/30 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-700/50 group">
+                  <li key={index} className={`flex items-center justify-between px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-700/50 group cursor-pointer transition-colors ${item.completed ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : 'bg-slate-50 dark:bg-slate-700/30'}`} onClick={() => toggleChecklist(index)}>
                     <div className="flex items-center gap-3">
-                      <span className="text-slate-400 dark:text-slate-500 font-semibold text-sm">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                        {item}
+                      <input type="checkbox" checked={item.completed} onChange={() => {}} className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800" />
+                      <span className={`text-sm font-medium ${item.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                        {item.title}
                       </span>
                     </div>
                     <button 
                       type="button" 
-                      onClick={() => removeChecklist(index)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeChecklist(index);
+                      }}
                       className="text-red-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <HiOutlineTrash className="w-4 h-4" />
@@ -295,6 +358,13 @@ const TaskDetailsModal = ({ isOpen, onClose, task }) => {
           </button>
         </div>
       </div>
+
+      <SelectMembersModal 
+        isOpen={isMemberModalOpen}
+        onClose={() => setIsMemberModalOpen(false)}
+        selectedAssignees={assignees}
+        onSave={(selected) => setAssignees(selected)}
+      />
     </div>
   );
 };
