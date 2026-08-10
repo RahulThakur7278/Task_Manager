@@ -8,6 +8,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
+import CreateTask from './pages/CreateTask';
+import ManageTask from './pages/ManageTask';
+import Team from './pages/Team';
+
 
 function App() {
   return (
@@ -30,6 +34,10 @@ function App() {
             >
               <Route path="/" element={<Dashboard />} />
               <Route path="/analytics" element={<Analytics />} />
+              <Route path="/create-task" element={<CreateTask />} />
+              <Route path='/manage-task' element={<ManageTask />} />
+              <Route path="/team" element={<Team />} />
+
             </Route>
 
             {/* Catch-all redirect */}

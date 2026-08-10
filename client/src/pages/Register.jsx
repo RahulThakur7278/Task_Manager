@@ -53,7 +53,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex flex-col bg-[#f5f5f5] font-sans">
       {/* Blue Header */}
-      <header className="text-white h-16 flex items-center justify-end px-6 shadow-md z-10 w-full gradient-primary">
+      <header className="text-white h-16 flex items-center justify-end px-6 shadow-md z-10 w-full bg-blue-500">
         <Link to="/login" className="flex items-center gap-2 text-white font-medium hover:bg-white/10 px-4 py-2 rounded transition-colors no-underline uppercase text-sm tracking-wider">
           <HiArrowRightOnRectangle className="w-5 h-5" />
           Login
@@ -68,14 +68,13 @@ const Register = () => {
           <form onSubmit={handleSubmit} className="flex flex-col w-full">
 
             {/* Name Input */}
-            <div className="relative" style={{ marginBottom: '1.5rem' }}>
+            <div className="relative mb-4">
               <input
                 type="text"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="block w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer"
-                style={{ padding: '1rem 0.75rem' }}
+                className="block py-3 w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer"
                 placeholder=" "
                 required
               />
@@ -88,14 +87,13 @@ const Register = () => {
             </div>
 
             {/* Email Input */}
-            <div className="relative" style={{ marginBottom: '1.5rem' }}>
+            <div className="relative mb-4">
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer"
-                style={{ padding: '1rem 0.75rem' }}
+                className="block py-3 w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer"
                 placeholder=" "
                 required
               />
@@ -108,14 +106,13 @@ const Register = () => {
             </div>
 
             {/* Phone Input */}
-            <div className="relative" style={{ marginBottom: '1.5rem' }}>
+            <div className="relative mb-4">
               <input
                 type="tel"
                 id="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="block w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer"
-                style={{ padding: '1rem 0.75rem' }}
+                className="block py-3 w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer"
                 placeholder=" "
                 required
               />
@@ -128,14 +125,13 @@ const Register = () => {
             </div>
 
             {/* Password Input */}
-            <div className="relative" style={{ marginBottom: '1.5rem' }}>
+            <div className="relative mb-4">
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer pr-10"
-                style={{ padding: '1rem 0.75rem' }}
+                className="block py-3 w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer pr-10"
                 placeholder=" "
                 required
               />
@@ -155,14 +151,13 @@ const Register = () => {
             </div>
 
             {/* Confirm Password Input */}
-            <div className="relative" style={{ marginBottom: '1.5rem' }}>
+            <div className="relative mb-4">
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="block w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer pr-10"
-                style={{ padding: '1rem 0.75rem' }}
+                className="block py-3 w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer pr-10"
                 placeholder=" "
                 required
               />
@@ -175,7 +170,7 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 bg- border-none cursor-pointer p-1"
               >
                 {showConfirmPassword ? <HiEyeSlash className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
               </button>
@@ -185,8 +180,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-white font-medium rounded transition-all hover:opacity-90 active:scale-95 uppercase tracking-wider text-sm border-none cursor-pointer shadow-md disabled:opacity-70 disabled:cursor-not-allowed gradient-primary"
-              style={{ marginTop: '0.5rem', padding: '0.875rem' }}
+              className="bg-blue-500 text-white py-2 rounded cursor-pointer"
             >
               {loading ? 'Registering...' : 'Register'}
             </button>
