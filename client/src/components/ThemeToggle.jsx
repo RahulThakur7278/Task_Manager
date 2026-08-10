@@ -8,19 +8,7 @@ const ThemeToggle = () => {
     <button
       id="theme-toggle-btn"
       onClick={toggleTheme}
-      className="p-2 rounded-lg cursor-pointer border-none transition-colors duration-200"
-      style={{
-        backgroundColor: 'transparent',
-        color: 'var(--text-secondary)',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
-        e.currentTarget.style.color = 'var(--text-primary)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = 'transparent';
-        e.currentTarget.style.color = 'var(--text-secondary)';
-      }}
+      className="p-2 rounded-lg transition-colors duration-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800"
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
       {theme === 'dark' ? (
