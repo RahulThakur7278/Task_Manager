@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { HiOutlineCalendar, HiOutlineUserPlus, HiPlus, HiOutlineLink } from 'react-icons/hi2';
+import api from '../api/axios';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import SelectMembersModal from '../components/SelectMembersModal';
 
 const CreateTask = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,6 +19,9 @@ const CreateTask = () => {
   
   const [attachmentInput, setAttachmentInput] = useState('');
   const [attachments, setAttachments] = useState([]);
+
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+  const [assignees, setAssignees] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,10 +42,26 @@ const CreateTask = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ ...formData, checklists, attachments });
-    // Handle API submission here
+    if (!formData.title.trim()) {
+      return toast.error('Task title is required');
+    }
+
+    try {
+      const payload = {
+        ...formData,
+        checklist: checklists.map(item => ({ title: item, completed: false })),
+        assignees: assignees.map(a => a._id),
+        attachments,
+      };
+
+      await api.post('/tasks', payload);
+      toast.success('Task created successfully!');
+      navigate('/tasks'); // navigate to manage tasks
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create task');
+    }
   };
 
   return (
@@ -131,13 +155,35 @@ const CreateTask = () => {
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Assign To
               </label>
-              <button
-                type="button"
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-colors border border-transparent"
-              >
-                <HiOutlineUserPlus className="w-5 h-5" />
-                Add Members
-              </button>
+              
+              <div className="flex items-center gap-3 h-[50px]">
+                {assignees.length > 0 && (
+                  <div className="flex -space-x-2">
+                    {assignees.map((user) => (
+                      <img 
+                        key={user._id} 
+                        src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`} 
+                        alt={user.name} 
+                        title={user.name}
+                        className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-800"
+                      />
+                    ))}
+                  </div>
+                )}
+                
+                <button
+                  type="button"
+                  onClick={() => setIsMemberModalOpen(true)}
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-colors border border-transparent font-medium ${
+                    assignees.length === 0 
+                      ? 'w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200' 
+                      : 'bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+                  }`}
+                >
+                  <HiOutlineUserPlus className="w-5 h-5" />
+                  {assignees.length === 0 ? 'Add Members' : 'Edit'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -229,6 +275,13 @@ const CreateTask = () => {
           </button>
         </div>
       </div>
+
+      <SelectMembersModal 
+        isOpen={isMemberModalOpen}
+        onClose={() => setIsMemberModalOpen(false)}
+        selectedAssignees={assignees}
+        onSave={(selected) => setAssignees(selected)}
+      />
     </div>
   );
 };

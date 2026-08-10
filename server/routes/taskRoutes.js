@@ -6,6 +6,7 @@ import {
   deleteTask,
   reorderTasks,
   getAnalytics,
+  getRecentTasks,
   createTaskSchema,
   updateTaskSchema,
   reorderSchema,
@@ -24,5 +25,6 @@ router.post('/', validate(createTaskSchema), createTask);
 router.put('/reorder', validate(reorderSchema), reorderTasks);
 router.put('/:id', validate(updateTaskSchema), updateTask);
 router.delete('/:id', deleteTask);
+router.get('/recent-tasks', getRecentTasks);
 
 export default router;

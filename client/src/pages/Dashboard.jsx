@@ -99,6 +99,7 @@ const Dashboard = () => {
     if (!analytics) return [];
     return [
       { name: 'Completed', value: analytics.completed, color: CHART_COLORS.success },
+      { name: 'In Progress', value: analytics.inProgress, color: CHART_COLORS.accent },
       { name: 'Pending', value: analytics.pending, color: CHART_COLORS.warning },
     ];
   }, [analytics]);
@@ -200,6 +201,7 @@ const Dashboard = () => {
                 <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="created" fill={CHART_COLORS.primary} radius={[6, 6, 0, 0]} name="Created" />
                 <Bar dataKey="completed" fill={CHART_COLORS.success} radius={[6, 6, 0, 0]} name="Completed" />
+                <Bar dataKey="inProgress" fill={CHART_COLORS.accent} radius={[6, 6, 0, 0]} name="In Progress" />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -1,23 +1,28 @@
-import React, { useState } from 'react';
-import { HiOutlineDocumentDownload, HiPlus } from 'react-icons/hi';
+import React, { useState, useEffect } from 'react';
+import { HiPlus } from 'react-icons/hi';
 import AddMemberModal from '../components/AddMemberModal';
-
-const teamMembers = [
-  { id: 1, name: 'Dustin', email: 'dustin@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=11', pending: 0, inProgress: 2, completed: 1 },
-  { id: 2, name: 'John Paul', email: 'john@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=12', pending: 0, inProgress: 2, completed: 2 },
-  { id: 3, name: 'Mary Jane', email: 'mary@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=5', pending: 3, inProgress: 0, completed: 0 },
-  { id: 4, name: 'James Dean', email: 'james@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=14', pending: 3, inProgress: 1, completed: 1 },
-  { id: 5, name: 'Anna Grace', email: 'anna@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=10', pending: 3, inProgress: 0, completed: 0 },
-  { id: 6, name: 'Mark Lee', email: 'mark@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=15', pending: 2, inProgress: 2, completed: 0 },
-  { id: 7, name: 'Emma Rose', email: 'emma@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=9', pending: 2, inProgress: 2, completed: 1 },
-  { id: 8, name: 'Luke Ryan', email: 'luke@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=8', pending: 4, inProgress: 0, completed: 0 },
-  { id: 9, name: 'Mia Belle', email: 'mia@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=20', pending: 3, inProgress: 1, completed: 0 },
-  { id: 10, name: 'Adam Cole', email: 'adam@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=13', pending: 1, inProgress: 2, completed: 3 },
-  { id: 11, name: 'Lily May', email: 'lily@timetoprogram.com', avatar: 'https://i.pravatar.cc/150?img=1', pending: 0, inProgress: 3, completed: 1 },
-];
+import api from '../api/axios';
+import toast from 'react-hot-toast';
 
 const Team = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTeamMembers = async () => {
+    try {
+      const response = await api.get('/users');
+      setTeamMembers(response.data.users);
+    } catch (error) {
+      toast.error('Failed to load team members');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeamMembers();
+  }, []);
 
   return (
     <div className="w-full">
@@ -39,9 +44,12 @@ const Team = () => {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {teamMembers.map(member => (
-          <div key={member.id} className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+      {loading ? (
+        <div className="flex justify-center py-20 text-slate-500">Loading team members...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {teamMembers.map(member => (
+            <div key={member._id} className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
             {/* Header info */}
             <div className="flex items-center gap-4 mb-6">
               <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" />
@@ -66,13 +74,15 @@ const Team = () => {
               </div>
             </div>
           </div>
-        ))}
-      </div>
-
+          ))}
+        </div>
+      )}
+      
       {/* Add Member Modal */}
-      <AddMemberModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+      <AddMemberModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onMemberAdded={fetchTeamMembers}
       />
     </div>
   );

@@ -73,7 +73,7 @@ const Header = () => {
                       className={`w-4 h-4 transition-colors duration-200 ${isActive ? 'text-indigo-500' : 'text-slate-500 dark:text-slate-400 group-hover:text-indigo-500'}`}
                     />
                     <span
-                      className={`transition-all duration-200 ${isActive ? 'bg-gradient-to-br from-indigo-500 to-cyan-500 bg-clip-text text-transparent' : 'text-slate-500 dark:text-slate-400 group-hover:bg-gradient-to-br group-hover:from-indigo-500 group-hover:to-cyan-500 group-hover:bg-clip-text group-hover:text-transparent'}`}
+                      className={`transition-all duration-200 ${isActive ? 'bg-gradient-to-br from-indigo-500 to-cyan-500 bg-clip-text text-transparent' : 'text-slate-500 dark:text-slate-400 group-hover:bg-gradient-to-br group-hover:from-indigo-500 group-hover:to-cyan-500 group-hover:bg-clip-text group-hover:text-transparent whitespace-nowrap'}`}
                     >
                       {label}
                     </span>
