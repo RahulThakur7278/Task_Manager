@@ -112,3 +112,25 @@ export const addMember = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateMember = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+    const { name, password } = req.body;
+    user.name = name || user.name;
+    if (password) {
+      user.password = password;
+    }
+    await user.save();
+    res.json({
+      success: true,
+      user,
+    });
+    console.log("updated user", user);
+  } catch (error) {
+    next(error);
+  }
+};
