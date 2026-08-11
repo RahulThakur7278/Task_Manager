@@ -37,6 +37,7 @@ app.use(
 );
 
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use('/api/', limiter);
