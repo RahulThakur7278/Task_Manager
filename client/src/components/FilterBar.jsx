@@ -11,16 +11,29 @@ const FilterBar = () => {
   const { filter, setFilter } = useTasks();
 
   return (
-    <div className="flex gap-1.5 p-1 rounded-xl" style={{ backgroundColor: 'var(--hover-bg)' }}>
+    <div
+      style={{
+        display: 'flex',
+        gap: '5px',
+        padding: '3px',
+        borderRadius: '10px',
+        backgroundColor: 'var(--hover-bg)',
+      }}
+    >
       {filters.map(({ value, label }) => (
         <button
           key={value}
           id={`filter-${value}`}
           onClick={() => setFilter(value)}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200
-            cursor-pointer border-none flex-1 sm:flex-none`}
+          className={`text-[11px] sm:text-[13px] ${filter === value ? 'gradient-primary' : ''}`}
           style={{
-            backgroundColor: filter === value ? 'var(--color-primary-500)' : 'transparent',
+            padding: '10px 10px',
+            borderRadius: '10px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            border: 'none',
+            transition: 'all 0.2s ease',
+            background: filter === value ? undefined : 'transparent',
             color: filter === value ? '#fff' : 'var(--text-secondary)',
             boxShadow: filter === value ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none',
           }}

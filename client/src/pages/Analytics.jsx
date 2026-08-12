@@ -14,6 +14,8 @@ import {
   HiTrophy,
 } from 'react-icons/hi2';
 
+import MiniStatCard from '../components/MiniStatCard';
+
 const Analytics = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,6 @@ const Analytics = () => {
         setLoading(false);
       }
     };
-
     fetchAnalytics();
   }, []);
 
@@ -62,17 +63,24 @@ const Analytics = () => {
 
   const axisColor = theme === 'dark' ? '#64748b' : '#94a3b8';
 
+  const cardStyle = {
+    backgroundColor: 'var(--card-bg)',
+    border: '1px solid var(--border-color)',
+    boxShadow: '0 2px 8px var(--shadow-color)',
+    borderRadius: '16px',
+  };
+
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="animate-fade-in">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 rounded-2xl animate-pulse-soft" style={{ backgroundColor: 'var(--hover-bg)' }} />
+            <div key={i} style={{ height: '112px', borderRadius: '16px', backgroundColor: 'var(--hover-bg)' }} className="animate-pulse-soft" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-80 rounded-2xl animate-pulse-soft" style={{ backgroundColor: 'var(--hover-bg)' }} />
+            <div key={i} style={{ height: '320px', borderRadius: '16px', backgroundColor: 'var(--hover-bg)' }} className="animate-pulse-soft" />
           ))}
         </div>
       </div>
@@ -81,127 +89,74 @@ const Analytics = () => {
 
   if (!analytics) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <div style={{ textAlign: 'center', padding: '64px 0' }}>
         <p style={{ color: 'var(--text-muted)' }}>Failed to load analytics</p>
       </div>
     );
   }
 
   const summaryCards = [
-    {
-      label: 'Total Tasks',
-      value: analytics.total,
-      icon: HiChartBar,
-      color: CHART_COLORS.primary,
-      bg: 'rgba(99, 102, 241, 0.1)',
-    },
-    {
-      label: 'Completed',
-      value: analytics.completed,
-      icon: HiClipboardDocumentCheck,
-      color: CHART_COLORS.success,
-      bg: 'rgba(34, 197, 94, 0.1)',
-    },
-    {
-      label: 'Pending',
-      value: analytics.pending,
-      icon: HiClock,
-      color: CHART_COLORS.warning,
-      bg: 'rgba(245, 158, 11, 0.1)',
-    },
-    {
-      label: 'Completion Rate',
-      value: `${analytics.completionRate}%`,
-      icon: HiTrophy,
-      color: CHART_COLORS.accent,
-      bg: 'rgba(6, 182, 212, 0.1)',
-    },
+    { label: 'Total Tasks', value: analytics.total, icon: HiChartBar, color: '#6366f1', bg: 'rgba(99, 102, 241, 0.1)' },
+    { label: 'Completed', value: analytics.completed, icon: HiClipboardDocumentCheck, color: '#22c55e', bg: 'rgba(34, 197, 94, 0.1)' },
+    { label: 'Pending', value: analytics.pending, icon: HiClock, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+    { label: 'Completion Rate', value: `${analytics.completionRate}%`, icon: HiTrophy, color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.1)' },
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          Analytics
-        </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-          Track your productivity and task completion trends
-        </p>
+    <div className="animate-fade-in">
+
+      {/* Header Banner */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #06b6d4 100%)',
+          borderRadius: '20px',
+          padding: '40px 36px',
+          marginBottom: '32px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+        <div style={{ position: 'absolute', bottom: '-30px', left: '-30px', width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 style={{ color: '#fff', fontSize: '28px', fontWeight: 700 }}>Analytics</h1>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', marginTop: '10px' }}>
+            Track your productivity and task completion trends
+          </p>
+        </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {summaryCards.map((card, index) => (
-          <div
-            key={card.label}
-            className="rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg animate-fade-in-up"
-            style={{
-              backgroundColor: 'var(--card-bg)',
-              borderColor: 'var(--border-color)',
-              boxShadow: '0 1px 3px var(--shadow-color)',
-              animationDelay: `${index * 0.1}s`,
-            }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: card.bg }}
-              >
-                <card.icon className="w-5 h-5" style={{ color: card.color }} />
-              </div>
-            </div>
-            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              {card.value}
-            </p>
-            <p className="text-xs font-medium mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              {card.label}
-            </p>
-          </div>
+          <MiniStatCard key={card.label} {...card} index={index} />
         ))}
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         {/* Pie Chart */}
-        <div
-          className="rounded-2xl p-6 border"
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            borderColor: 'var(--border-color)',
-            boxShadow: '0 1px 3px var(--shadow-color)',
-          }}
-        >
-          <h3 className="text-sm font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
-            Task Distribution
-          </h3>
-          <div className="h-64">
+        <div className="hover:shadow-lg transition-all duration-300" style={{ ...cardStyle, padding: '28px 32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'linear-gradient(135deg, #22c55e, #f59e0b)' }} />
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Task Distribution</h3>
+          </div>
+          <div style={{ height: '256px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={6}
-                  dataKey="value"
-                  strokeWidth={0}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={index} fill={entry.color} />
-                  ))}
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={6} dataKey="value" strokeWidth={0}>
+                  {pieData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
                 </Pie>
                 <Tooltip contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          {/* Legend */}
-          <div className="flex justify-center gap-6 mt-4">
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '16px' }}>
             {pieData.map((entry) => (
-              <div key={entry.name} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+              <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: entry.color }} />
+                <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)' }}>
                   {entry.name} ({entry.value})
                 </span>
               </div>
@@ -210,18 +165,12 @@ const Analytics = () => {
         </div>
 
         {/* Bar Chart */}
-        <div
-          className="rounded-2xl p-6 border"
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            borderColor: 'var(--border-color)',
-            boxShadow: '0 1px 3px var(--shadow-color)',
-          }}
-        >
-          <h3 className="text-sm font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
-            Tasks Created (Last 7 Days)
-          </h3>
-          <div className="h-64">
+        <div className="hover:shadow-lg transition-all duration-300" style={{ ...cardStyle, padding: '28px 32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #22c55e)' }} />
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Tasks Created (Last 7 Days)</h3>
+          </div>
+          <div style={{ height: '256px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData} barCategoryGap="20%">
                 <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} />
@@ -235,19 +184,13 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* Area Chart - spans full width */}
-        <div
-          className="rounded-2xl p-6 border lg:col-span-2"
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            borderColor: 'var(--border-color)',
-            boxShadow: '0 1px 3px var(--shadow-color)',
-          }}
-        >
-          <h3 className="text-sm font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
-            Completion Trend
-          </h3>
-          <div className="h-64">
+        {/* Area Chart - full width */}
+        <div className="hover:shadow-lg transition-all duration-300" style={{ ...cardStyle, padding: '28px 32px', gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+            <div className="gradient-primary" style={{ width: '8px', height: '8px', borderRadius: '50%' }} />
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Completion Trend</h3>
+          </div>
+          <div style={{ height: '256px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={barData}>
                 <defs>
@@ -264,22 +207,8 @@ const Analytics = () => {
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area
-                  type="monotone"
-                  dataKey="created"
-                  stroke={CHART_COLORS.primary}
-                  fill="url(#colorCreated)"
-                  strokeWidth={2}
-                  name="Created"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="completed"
-                  stroke={CHART_COLORS.success}
-                  fill="url(#colorCompleted)"
-                  strokeWidth={2}
-                  name="Completed"
-                />
+                <Area type="monotone" dataKey="created" stroke={CHART_COLORS.primary} fill="url(#colorCreated)" strokeWidth={2} name="Created" />
+                <Area type="monotone" dataKey="completed" stroke={CHART_COLORS.success} fill="url(#colorCompleted)" strokeWidth={2} name="Completed" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

@@ -4,32 +4,43 @@ import AppError from '../utils/AppError.js';
 
 // Zod schemas
 export const createTaskSchema = z.object({
-  title: z
-    .string()
-    .min(1, 'Task title is required')
-    .max(200, 'Task title cannot exceed 200 characters')
-    .trim(),
+  title: z.string().min(1, 'Task title is required').max(200, 'Task title cannot exceed 200 characters').trim(),
+  description: z.string().optional(),
+  priority: z.enum(['Low', 'Medium', 'High']).optional(),
+  status: z.enum(['Pending', 'In Progress', 'Completed']).optional(),
+  startDate: z.string().optional(),
+  dueDate: z.string().optional(),
+  assignees: z.array(z.string()).optional(),
+  checklist: z.array(
+    z.object({
+      title: z.string().min(1, 'Checklist title is required'),
+      completed: z.boolean().optional(),
+    })
+  ).optional(),
+  attachments: z.array(z.string()).optional(),
 });
 
 export const updateTaskSchema = z.object({
-  title: z
-    .string()
-    .min(1, 'Task title is required')
-    .max(200, 'Task title cannot exceed 200 characters')
-    .trim()
-    .optional(),
-  completed: z.boolean().optional(),
+  title: z.string().min(1, 'Task title is required').max(200, 'Task title cannot exceed 200 characters').trim().optional(),
+  description: z.string().optional(),
+  priority: z.enum(['Low', 'Medium', 'High']).optional(),
+  status: z.enum(['Pending', 'In Progress', 'Completed']).optional(),
+  startDate: z.string().optional(),
+  dueDate: z.string().optional(),
+  assignees: z.array(z.string()).optional(),
+  checklist: z.array(
+    z.object({
+      title: z.string().min(1, 'Checklist title is required'),
+      completed: z.boolean().optional(),
+    })
+  ).optional(),
+  attachments: z.array(z.string()).optional(),
 });
 
 export const reorderSchema = z.object({
   orderedIds: z.array(z.string()).min(1, 'orderedIds array is required'),
 });
 
-/**
- * @desc    Get tasks with pagination, search, and filter
- * @route   GET /api/tasks?page=1&limit=10&status=all&q=search
- * @access  Private
- */
 export const getTasks = async (req, res, next) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
@@ -37,13 +48,13 @@ export const getTasks = async (req, res, next) => {
     const status = req.query.status || 'all';
     const search = req.query.q || '';
 
-    // Build filter
-    const filter = { user: req.user._id };
+    // Build filter: Tasks they created OR tasks assigned to them
+    const filter = { $or: [{ user: req.user._id }, { assignees: req.user._id }] };
 
-    if (status === 'completed') {
-      filter.completed = true;
-    } else if (status === 'pending') {
-      filter.completed = false;
+    if (status !== 'all') {
+      if (status === 'completed') filter.status = 'Completed';
+      else if (status === 'pending') filter.status = 'Pending';
+      else if (status === 'in progress') filter.status = 'In Progress';
     }
 
     if (search) {
@@ -54,6 +65,7 @@ export const getTasks = async (req, res, next) => {
     const totalPages = Math.ceil(totalTasks / limit);
 
     const tasks = await Task.find(filter)
+      .populate('assignees', 'name email avatar')
       .sort({ order: 1, createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -70,70 +82,58 @@ export const getTasks = async (req, res, next) => {
   }
 };
 
-/**
- * @desc    Create a new task
- * @route   POST /api/tasks
- * @access  Private
- */
 export const createTask = async (req, res, next) => {
   try {
-    // Get the highest order value for the user's tasks
     const lastTask = await Task.findOne({ user: req.user._id }).sort({ order: -1 });
     const order = lastTask ? lastTask.order + 1 : 0;
 
     const task = await Task.create({
-      title: req.body.title,
+      ...req.body,
       user: req.user._id,
       order,
     });
 
+    const populatedTask = await Task.findById(task._id).populate('assignees', 'name email avatar');
+
     res.status(201).json({
       success: true,
-      task,
+      task: populatedTask,
     });
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * @desc    Update a task
- * @route   PUT /api/tasks/:id
- * @access  Private
- */
 export const updateTask = async (req, res, next) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
+    // Allows creator or assignee to update
+    const task = await Task.findOne({ _id: req.params.id, $or: [{ user: req.user._id }, { assignees: req.user._id }] });
 
     if (!task) {
-      throw new AppError('Task not found', 404);
+      throw new AppError('Task not found or unauthorized', 404);
     }
 
-    if (req.body.title !== undefined) task.title = req.body.title;
-    if (req.body.completed !== undefined) task.completed = req.body.completed;
-
+    Object.assign(task, req.body);
     await task.save();
+
+    const populatedTask = await Task.findById(task._id).populate('assignees', 'name email avatar');
 
     res.json({
       success: true,
-      task,
+      task: populatedTask,
     });
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * @desc    Delete a task
- * @route   DELETE /api/tasks/:id
- * @access  Private
- */
 export const deleteTask = async (req, res, next) => {
   try {
+    // Only creator can delete
     const task = await Task.findOneAndDelete({ _id: req.params.id, user: req.user._id });
 
     if (!task) {
-      throw new AppError('Task not found', 404);
+      throw new AppError('Task not found or unauthorized (only creator can delete)', 404);
     }
 
     res.json({
@@ -145,11 +145,6 @@ export const deleteTask = async (req, res, next) => {
   }
 };
 
-/**
- * @desc    Reorder tasks after drag-and-drop
- * @route   PUT /api/tasks/reorder
- * @access  Private
- */
 export const reorderTasks = async (req, res, next) => {
   try {
     const { orderedIds } = req.body;
@@ -172,23 +167,19 @@ export const reorderTasks = async (req, res, next) => {
   }
 };
 
-/**
- * @desc    Get task analytics/stats
- * @route   GET /api/tasks/analytics
- * @access  Private
- */
 export const getAnalytics = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
     // Get total counts
-    const [total, completed] = await Promise.all([
-      Task.countDocuments({ user: userId }),
-      Task.countDocuments({ user: userId, completed: true }),
+    const [total, completedCount, inProgressCount, pendingCount] = await Promise.all([
+      Task.countDocuments({ $or: [{ user: userId }, { assignees: userId }] }),
+      Task.countDocuments({ $or: [{ user: userId }, { assignees: userId }], status: 'Completed' }),
+      Task.countDocuments({ $or: [{ user: userId }, { assignees: userId }], status: 'In Progress' }),
+      Task.countDocuments({ $or: [{ user: userId }, { assignees: userId }], status: 'Pending' }),
     ]);
 
-    const pending = total - completed;
-    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const completionRate = total > 0 ? Math.round((completedCount / total) * 100) : 0;
 
     // Get daily stats for the last 7 days
     const sevenDaysAgo = new Date();
@@ -198,7 +189,7 @@ export const getAnalytics = async (req, res, next) => {
     const dailyCreated = await Task.aggregate([
       {
         $match: {
-          user: userId,
+          $or: [{ user: userId }, { assignees: userId }],
           createdAt: { $gte: sevenDaysAgo },
         },
       },
@@ -209,7 +200,10 @@ export const getAnalytics = async (req, res, next) => {
           },
           created: { $sum: 1 },
           completed: {
-            $sum: { $cond: ['$completed', 1, 0] },
+            $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] },
+          },
+          inProgress: {
+            $sum: { $cond: [{ $eq: ['$status', 'In Progress'] }, 1, 0] },
           },
         },
       },
@@ -227,6 +221,7 @@ export const getAnalytics = async (req, res, next) => {
         date: dateStr,
         created: dayData?.created || 0,
         completed: dayData?.completed || 0,
+        inProgress: dayData?.inProgress || 0,
       });
     }
 
@@ -234,11 +229,28 @@ export const getAnalytics = async (req, res, next) => {
       success: true,
       analytics: {
         total,
-        completed,
-        pending,
+        completed: completedCount,
+        inProgress: inProgressCount,
+        pending: pendingCount,
         completionRate,
         dailyStats,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRecentTasks = async (req, res, next) => {
+  try {
+    const recentTasks = await Task.find()
+      .select('title status priority createdAt dueDate')
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json({
+      success: true,
+      recentTasks,
     });
   } catch (error) {
     next(error);
