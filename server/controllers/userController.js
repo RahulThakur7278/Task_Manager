@@ -132,7 +132,6 @@ export const updateMember = async (req, res, next) => {
       success: true,
       user,
     });
-    console.log("updated user", user);
   } catch (error) {
     next(error);
   }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HiXMark, HiOutlineUser, HiOutlinePhone, HiOutlineEnvelope, HiOutlineLockClosed } from 'react-icons/hi2';
+import { HiXMark, HiOutlineUser, HiOutlinePhone, HiOutlineEnvelope, HiOutlineLockClosed, HiEye, HiEyeSlash } from 'react-icons/hi2';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,7 @@ const AddMemberModal = ({ isOpen, onClose, onMemberAdded }) => {
     email: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   if (!isOpen) return null;
 
@@ -35,9 +36,9 @@ const AddMemberModal = ({ isOpen, onClose, onMemberAdded }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-sm animate-fade-in z-[100]">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative animate-fade-in-up">
-        
+
         {/* Close Button */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
         >
@@ -56,7 +57,7 @@ const AddMemberModal = ({ isOpen, onClose, onMemberAdded }) => {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-8 space-y-5">
-          
+
           {/* Name */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -130,14 +131,25 @@ const AddMemberModal = ({ isOpen, onClose, onMemberAdded }) => {
                 <HiOutlineLockClosed className="h-5 w-5 text-slate-400" />
               </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 required
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                className="w-full pl-11 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-500 transition-colors"
+              >
+                {showPassword ? (
+                  <HiEyeSlash className="h-5 w-5" />
+                ) : (
+                  <HiEye className="h-5 w-5" />
+                )}
+              </button>
             </div>
           </div>
 

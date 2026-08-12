@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HiXMark, HiOutlineUser, HiOutlinePhone, HiOutlineEnvelope, HiOutlineLockClosed } from 'react-icons/hi2';
+import { HiXMark, HiOutlineUser, HiOutlinePhone, HiOutlineEnvelope, HiOutlineLockClosed, HiEye, HiEyeSlash } from 'react-icons/hi2';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,7 @@ const EditMemberModal = ({ isOpen, onClose, member, onMemberUpdated }) => {
     email: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (member) {
@@ -146,13 +147,24 @@ const EditMemberModal = ({ isOpen, onClose, member, onMemberUpdated }) => {
                 <HiOutlineLockClosed className="h-5 w-5 text-slate-400" />
               </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Leave blank to keep unchanged"
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                className="w-full pl-11 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-500 transition-colors"
+              >
+                {showPassword ? (
+                  <HiEyeSlash className="h-5 w-5" />
+                ) : (
+                  <HiEye className="h-5 w-5" />
+                )}
+              </button>
             </div>
           </div>
 
