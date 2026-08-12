@@ -119,8 +119,11 @@ export const updateMember = async (req, res, next) => {
     if (!user) {
       throw new AppError('User not found', 404);
     }
-    const { name, password } = req.body;
+    const { name, phone, password } = req.body;
     user.name = name || user.name;
+    if (phone) {
+      user.phone = phone;
+    }
     if (password) {
       user.password = password;
     }
