@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { HiPlus } from 'react-icons/hi';
+import { HiPlus, HiPencil } from 'react-icons/hi';
 import AddMemberModal from '../components/AddMemberModal';
+import EditMemberModal from '../components/EditMemberModal';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 const Team = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const getInitials = (fullName) => {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+  };
 
   const fetchTeamMembers = async () => {
     try {
@@ -51,12 +61,30 @@ const Team = () => {
           {teamMembers.map(member => (
             <div key={member._id} className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
             {/* Header info */}
-            <div className="flex items-center gap-4 mb-6">
-              <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" />
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{member.name}</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{member.email}</p>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                {member.avatar ? (
+                  <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full border-2 border-white dark:border-slate-800 shadow-sm object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center bg-gradient-to-br from-indigo-500 to-cyan-500 text-white font-bold text-sm">
+                    {getInitials(member.name)}
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{member.name}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{member.email}</p>
+                </div>
               </div>
+              <button 
+                onClick={() => {
+                  setEditingMember(member);
+                  setIsEditModalOpen(true);
+                }}
+                className="text-slate-400 hover:text-indigo-500 transition-colors p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+                title="Edit Member"
+              >
+                <HiPencil className="w-5 h-5" />
+              </button>
             </div>
             {/* Stats row */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700/50">
@@ -83,6 +111,17 @@ const Team = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onMemberAdded={fetchTeamMembers}
+      />
+
+      {/* Edit Member Modal */}
+      <EditMemberModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingMember(null);
+        }}
+        member={editingMember}
+        onMemberUpdated={fetchTeamMembers}
       />
     </div>
   );
