@@ -23,7 +23,7 @@ const Team = () => {
     try {
       const response = await api.get('/users');
       setTeamMembers(response.data.users);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load team members');
     } finally {
       setLoading(false);
@@ -71,7 +71,16 @@ const Team = () => {
                   </div>
                 )}
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{member.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{member.name}</h3>
+                    <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
+                      member.role === 'admin'
+                        ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800'
+                        : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-800'
+                    }`}>
+                      {member.role || 'user'}
+                    </span>
+                  </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400">{member.email}</p>
                 </div>
               </div>

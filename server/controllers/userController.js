@@ -58,6 +58,7 @@ export const getUsers = async (req, res, next) => {
         email: user.email,
         phone: user.phone,
         avatar: user.avatar,
+        role: user.role || 'user',
         pending,
         inProgress,
         completed,
@@ -96,6 +97,7 @@ export const addMember = async (req, res, next) => {
       phone,
       password,
       avatar,
+      role: 'user',
     });
 
     res.status(201).json({
@@ -106,6 +108,7 @@ export const addMember = async (req, res, next) => {
         email: user.email,
         phone: user.phone,
         avatar: user.avatar,
+        role: user.role,
       },
     });
   } catch (error) {
