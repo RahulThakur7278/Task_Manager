@@ -12,7 +12,9 @@ import Analytics from './pages/Analytics';
 import CreateTask from './pages/CreateTask';
 import ManageTask from './pages/ManageTask';
 import Team from './pages/Team';
-
+import UserLayout from './pages/user/UserLayout';
+import UserDashboard from './pages/user/Dashboard';
+import UserMyTasks from './pages/user/MyTask';
 
 function App() {
   return (
@@ -26,10 +28,10 @@ function App() {
             <Route path="/user/login" element={<UserLogin />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Protected Routes */}
+            {/* Protected Admin Routes */}
             <Route
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <Layout />
                 </ProtectedRoute>
               }
@@ -37,13 +39,33 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/create-task" element={<CreateTask />} />
-              <Route path='/manage-task' element={<ManageTask />} />
+              <Route path="/manage-task" element={<ManageTask />} />
               <Route path="/team" element={<Team />} />
+            </Route>
 
+            {/* User Routes */}
+            <Route
+              path="/user"
+              element={
+                <ProtectedRoute allowedRoles={['user']}>
+                  <UserLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="dashboard" element={<UserDashboard />} />
+              <Route path="my-tasks" element={<UserMyTasks />} />
             </Route>
 
             {/* Catch-all redirect */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route
+              path="*"
+              element={
+                <Navigate
+                  to={window.location.port === '3000' ? '/user/dashboard' : '/'}
+                  replace
+                />
+              }
+            />
           </Routes>
         </AuthProvider>
       </ThemeProvider>

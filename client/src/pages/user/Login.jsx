@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 import {
   HiEnvelope,
   HiLockClosed,
@@ -9,8 +11,6 @@ import {
   HiCheckCircle,
   HiSparkles
 } from 'react-icons/hi2';
-import { FcGoogle } from 'react-icons/fc';
-import { FaGithub } from 'react-icons/fa6';
 
 const UserLogin = () => {
   const [email, setEmail] = useState('');
@@ -18,14 +18,46 @@ const UserLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { login, user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  if (window.location.port === '5173') {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isAuthenticated) {
+    const target = user?.role === 'admin' ? '/' : '/user/dashboard';
+    return <Navigate to={target} replace />;
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email.trim() || !password) {
+      toast.error('Please fill in all fields');
+      return;
+    }
     setIsLoading(true);
-    // UI-only demo interaction
-    setTimeout(() => {
+    try {
+      const res = await login(email, password);
+      toast.success('Login successful!');
+      if (res?.user?.role === 'admin') {
+        if (window.location.port === '3000') {
+          window.location.href = 'http://localhost:5173/';
+        } else {
+          navigate('/');
+        }
+      } else {
+        if (window.location.port === '5173') {
+          window.location.href = 'http://localhost:3000/user/dashboard';
+        } else {
+          navigate('/user/dashboard');
+        }
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Login failed. Please check credentials.');
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   return (
