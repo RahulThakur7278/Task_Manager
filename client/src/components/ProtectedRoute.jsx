@@ -1,8 +1,8 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -16,7 +16,24 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    const loginPath = window.location.port === '3000' ? '/user/login' : '/login';
+    return <Navigate to={loginPath} replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    if (user?.role === 'admin') {
+      if (window.location.port === '3000') {
+        window.location.href = 'http://localhost:5173/';
+        return null;
+      }
+      return <Navigate to="/" replace />;
+    } else {
+      if (window.location.port === '5173') {
+        window.location.href = 'http://localhost:3000/user/dashboard';
+        return null;
+      }
+      return <Navigate to="/user/dashboard" replace />;
+    }
   }
 
   return children;

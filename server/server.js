@@ -28,10 +28,22 @@ const limiter = rateLimit({
   },
 });
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 // Middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     credentials: true,
   })
 );
@@ -66,6 +78,15 @@ app.use((req, res) => {
 
 // Global error handler
 app.use(errorHandler);
+
+// Global process error safety handlers to prevent process crashes & ECONNRESET
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ Unhandled Promise Rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ Uncaught Exception:', err);
+});
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {

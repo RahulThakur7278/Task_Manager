@@ -9,11 +9,16 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  if (window.location.port === '3000') {
+    return <Navigate to="/user/login" replace />;
+  }
+
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    const target = user?.role === 'admin' ? '/' : '/user/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   const handleSubmit = async (e) => {
@@ -26,9 +31,21 @@ const Login = () => {
 
     setLoading(true);
     try {
-      await login(email, password);
+      const res = await login(email, password);
       toast.success('Login successful!');
-      navigate('/');
+      if (res?.user?.role === 'admin') {
+        if (window.location.port === '3000') {
+          window.location.href = 'http://localhost:5173/';
+        } else {
+          navigate('/');
+        }
+      } else {
+        if (window.location.port === '5173') {
+          window.location.href = 'http://localhost:3000/user/dashboard';
+        } else {
+          navigate('/user/dashboard');
+        }
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

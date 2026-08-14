@@ -1,8 +1,12 @@
 import dns from 'dns';
 import mongoose from 'mongoose';
 
-// Force Node.js to use Google's DNS for SRV resolution
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+// Attempt to use Google DNS for SRV resolution fallback if available
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch {
+  // Ignore if custom DNS servers cannot be set
+}
 
 const connectDB = async () => {
   try {
@@ -10,8 +14,15 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
   }
 };
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️ MongoDB Disconnected. Reconnecting...');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error(`❌ MongoDB Connection Event Error: ${err.message}`);
+});
 
 export default connectDB;
