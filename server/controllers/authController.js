@@ -153,14 +153,21 @@ export const refreshAccessToken = async (req, res, next) => {
  * @route   GET /api/auth/me
  * @access  Private
  */
-export const getMe = async (req, res) => {
-  res.json({
-    success: true,
-    user: {
-      _id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role,
-    },
-  });
+export const getMe = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new AppError('User not found', 404);
+    }
+    res.json({
+      success: true,
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
