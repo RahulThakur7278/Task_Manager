@@ -16,22 +16,14 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (!isAuthenticated) {
-    const loginPath = window.location.port === '3000' ? '/user/login' : '/login';
-    return <Navigate to={loginPath} replace />;
+    const isUserRoute = allowedRoles && allowedRoles.includes('user') && !allowedRoles.includes('admin');
+    return <Navigate to={isUserRoute ? '/user/login' : '/login'} replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     if (user?.role === 'admin') {
-      if (window.location.port === '3000') {
-        window.location.href = 'http://localhost:5173/';
-        return null;
-      }
       return <Navigate to="/" replace />;
     } else {
-      if (window.location.port === '5173') {
-        window.location.href = 'http://localhost:3000/user/dashboard';
-        return null;
-      }
       return <Navigate to="/user/dashboard" replace />;
     }
   }
