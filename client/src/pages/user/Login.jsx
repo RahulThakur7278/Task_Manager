@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -21,10 +21,6 @@ const UserLogin = () => {
   const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  if (window.location.port === '5173') {
-    return <Navigate to="/login" replace />;
-  }
-
   if (isAuthenticated) {
     const target = user?.role === 'admin' ? '/' : '/user/dashboard';
     return <Navigate to={target} replace />;
@@ -41,17 +37,9 @@ const UserLogin = () => {
       const res = await login(email, password);
       toast.success('Login successful!');
       if (res?.user?.role === 'admin') {
-        if (window.location.port === '3000') {
-          window.location.href = 'http://localhost:5173/';
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       } else {
-        if (window.location.port === '5173') {
-          window.location.href = 'http://localhost:3000/user/dashboard';
-        } else {
-          navigate('/user/dashboard');
-        }
+        navigate('/user/dashboard');
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed. Please check credentials.');
@@ -187,6 +175,12 @@ const UserLogin = () => {
 
           {/* Social Divider */}
 
+          <p className="text-center text-sm text-slate-400 mt-4">
+            Are you an Admin?{' '}
+            <Link to="/login" className="text-cyan-400 hover:underline">
+              Admin Login
+            </Link>
+          </p>
         </div>
 
         {/* Footer Link */}

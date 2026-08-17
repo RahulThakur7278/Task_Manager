@@ -59,12 +59,7 @@ function App() {
             {/* Catch-all redirect */}
             <Route
               path="*"
-              element={
-                <Navigate
-                  to={window.location.port === '3000' ? '/user/dashboard' : '/'}
-                  replace
-                />
-              }
+              element={<Navigate to="/login" replace />}
             />
           </Routes>
         </AuthProvider>
