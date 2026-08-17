@@ -12,10 +12,6 @@ const Login = () => {
   const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  if (window.location.port === '3000') {
-    return <Navigate to="/user/login" replace />;
-  }
-
   if (isAuthenticated) {
     const target = user?.role === 'admin' ? '/' : '/user/dashboard';
     return <Navigate to={target} replace />;
@@ -34,17 +30,9 @@ const Login = () => {
       const res = await login(email, password);
       toast.success('Login successful!');
       if (res?.user?.role === 'admin') {
-        if (window.location.port === '3000') {
-          window.location.href = 'http://localhost:5173/';
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       } else {
-        if (window.location.port === '5173') {
-          window.location.href = 'http://localhost:3000/user/dashboard';
-        } else {
-          navigate('/user/dashboard');
-        }
+        navigate('/user/dashboard');
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed. Please try again.');
@@ -128,6 +116,12 @@ const Login = () => {
             Don't have an account?{' '}
             <Link to="/register" className="text-[#6366f1] hover:underline no-underline">
               Register
+            </Link>
+          </p>
+          <p className="text-center text-sm text-gray-600 mt-2">
+            Are you a team member?{' '}
+            <Link to="/user/login" className="text-blue-600 hover:underline">
+              User Login
             </Link>
           </p>
         </div>
