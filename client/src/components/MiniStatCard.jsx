@@ -1,39 +1,22 @@
 const MiniStatCard = ({ label, value, icon: Icon, color, bg, index = 0 }) => {
-  const cardStyle = {
-    backgroundColor: 'var(--card-bg)',
-    borderColor: 'var(--border-color)',
-    boxShadow: '0 2px 8px var(--shadow-color)',
-    border: '1px solid var(--border-color)',
-    borderRadius: '16px',
-    padding: '24px',
-    animationDelay: `${index * 0.08}s`,
-  };
+
 
   return (
     <div
-      className="animate-fade-in-up hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
-      style={cardStyle}
+      className="animate-fade-in-up hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl p-6"
+    // style={{ animationDelay: `${index * 0.08}s` }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="flex items-center gap-4">
         <div
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            backgroundColor: bg,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
+          className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${bg}`}
         >
-          <Icon style={{ width: '24px', height: '24px', color }} />
+          <Icon className={`w-6 h-6 ${color}`} />
         </div>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+        <div className="min-w-0">
+          <p className='text-2xl font-bold text-slate-900 dark:text-slate-100 leading-tight'>
             {value}
           </p>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <p className='text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis'>
             {label}
           </p>
         </div>

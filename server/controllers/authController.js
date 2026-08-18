@@ -39,11 +39,9 @@ export const register = async (req, res, next) => {
     if (existingUser) {
       throw new AppError('User with this email already exists', 400);
     }
-
-    const user = await User.create({ name, email, phone, password });
-
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const user = await User.create({ name, email, phone, password, role: 'admin' });
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id, user.role);
 
     res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
@@ -54,6 +52,7 @@ export const register = async (req, res, next) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        role: user.role,
       },
       accessToken,
     });
@@ -81,8 +80,8 @@ export const login = async (req, res, next) => {
       throw new AppError('Invalid email or password', 401);
     }
 
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id, user.role);
 
     res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
@@ -92,6 +91,7 @@ export const login = async (req, res, next) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
       accessToken,
     });
@@ -134,7 +134,7 @@ export const refreshAccessToken = async (req, res, next) => {
       throw new AppError('User not found', 401);
     }
 
-    const accessToken = generateAccessToken(user._id);
+    const accessToken = generateAccessToken(user._id, user.role);
 
     res.json({
       success: true,
@@ -153,13 +153,21 @@ export const refreshAccessToken = async (req, res, next) => {
  * @route   GET /api/auth/me
  * @access  Private
  */
-export const getMe = async (req, res) => {
-  res.json({
-    success: true,
-    user: {
-      _id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-    },
-  });
+export const getMe = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new AppError('User not found', 404);
+    }
+    res.json({
+      success: true,
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 };

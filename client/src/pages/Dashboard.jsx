@@ -1,12 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 import SearchBar from '../components/SearchBar';
 import FilterBar from '../components/FilterBar';
 import Pagination from '../components/Pagination';
 import StatsCard from '../components/StatsCard';
+import RecentTasks from '../components/RecentTasks';
 import { useTasks } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { CHART_COLORS } from '../utils/constants';
+import api from '../api/axios';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from 'recharts';
 import {
   HiClipboardDocumentCheck,
   HiClock,
@@ -68,161 +76,141 @@ const Dashboard = () => {
     },
   ];
 
-  const cardStyle = {
-    backgroundColor: 'var(--card-bg)',
-    borderColor: 'var(--border-color)',
-    boxShadow: '0 2px 8px var(--shadow-color)',
-    border: '1px solid var(--border-color)',
-    borderRadius: '16px',
+
+  const [analytics, setAnalytics] = useState(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const { data } = await api.get('/tasks/analytics');
+        setAnalytics(data.analytics);
+      } catch (error) {
+        console.error('Error fetching analytics:', error);
+      } finally {
+        setLoadingAnalytics(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
+  const pieData = useMemo(() => {
+    if (!analytics) return [];
+    return [
+      { name: 'Completed', value: analytics.completed, color: CHART_COLORS.success },
+      { name: 'In Progress', value: analytics.inProgress, color: CHART_COLORS.accent },
+      { name: 'Pending', value: analytics.pending, color: CHART_COLORS.warning },
+    ];
+  }, [analytics]);
+
+  const barData = useMemo(() => {
+    if (!analytics) return [];
+    return analytics.dailyStats.map((day) => ({
+      ...day,
+      date: new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    }));
+  }, [analytics]);
+
+  const tooltipStyle = {
+    backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
+    border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`,
+    borderRadius: '12px',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+    color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
+    fontSize: '12px',
+    fontWeight: '500',
   };
+
+  const axisColor = theme === 'dark' ? '#64748b' : '#94a3b8';
+
+  const summaryCards = [
+    { label: 'Total Tasks', value: analytics?.total || 0, icon: HiChartBar, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+    { label: 'Completed', value: analytics?.completed || 0, icon: HiClipboardDocumentCheck, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { label: 'Pending', value: analytics?.pending || 0, icon: HiClock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { label: 'Completion Rate', value: `${analytics?.completionRate || 0}%`, icon: HiTrophy, color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
+  ];
 
   return (
     <div className="animate-fade-in">
 
       {/* Welcome Banner */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%)',
-          borderRadius: '20px',
-          padding: '40px 36px',
-          marginBottom: '32px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            top: '-40px',
-            right: '-40px',
-            width: '180px',
-            height: '180px',
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.1)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '-30px',
-            left: '-30px',
-            width: '120px',
-            height: '120px',
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.07)',
-          }}
-        />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', fontWeight: 500 }}>
+      <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 rounded-[20px] px-9 py-10 mb-8 relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-[180px] h-[180px] rounded-full bg-white/10" />
+        <div className="absolute bottom-[-30px] left-[-30px] w-[120px] h-[120px] rounded-full bg-white/[0.07]" />
+
+        <div className="relative z-10">
+          <p className="text-white/80 text-sm font-medium">
             {greeting} 👋
           </p>
-          <h1 style={{ color: '#fff', fontSize: '28px', fontWeight: 700, marginTop: '4px' }}>
+          <h1 className="text-white text-[28px] font-bold mt-1">
             {firstName}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', marginTop: '10px' }}>
+          <p className="text-white/70 text-sm mt-2.5">
             {totalTasks > 0
               ? `You have ${stats.pending} pending task${stats.pending !== 1 ? 's' : ''} and ${stats.completed} completed.`
               : 'No tasks yet — create your first task to get started!'}
           </p>
         </div>
       </div>
-
-      {/* Mini Stat Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '20px',
-          marginBottom: '32px',
-        }}
-      >
-        {miniCards.map((card, index) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        {summaryCards.map((card, index) => (
           <MiniStatCard key={card.label} {...card} index={index} />
         ))}
       </div>
-
-      {/* Progress Section */}
-      <div style={{ marginBottom: '28px' }}>
-        <StatsCard />
-      </div>
-
-      {/* Add Task Section */}
-      <div
-        style={{
-          ...cardStyle,
-          padding: '28px 32px',
-          marginBottom: '28px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <div
-            className="gradient-primary"
-            style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-            }}
-          />
-          <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Add New Task
-          </h2>
-        </div>
-        <TaskForm />
-      </div>
-
-      {/* Task List Section */}
-      <div
-        style={{
-          ...cardStyle,
-          padding: '28px 32px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              className="gradient-primary"
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-              }}
-            />
-            <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Your Tasks
-            </h2>
-            {stats.total > 0 && (
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  padding: '2px 10px',
-                  borderRadius: '20px',
-                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                  color: '#6366f1',
-                }}
-              >
-                {stats.total}
-              </span>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl py-7 px-8">
+          <div className="flex items-center gap-2.5 mb-6">
+            <div className="w-2 h-2 rounded-full bg-gradient-to-br from-green-500 to-amber-500" />
+            <h3 className="text-[15px] font-semibold text-slate-900 dark:text-slate-100">Task Distribution</h3>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={6} dataKey="value" strokeWidth={0}>
+                  {pieData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex justify-center gap-6 mt-4">
+            {pieData.map((entry) => (
+              <div key={entry.name} className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {entry.name} ({entry.value})
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Search + Filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
-          <div style={{ flex: '0 1 400px', minWidth: '200px' }}>
-            <SearchBar />
+        {/* Bar Chart */}
+        <div className="hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl py-7 px-8">
+          <div className="flex items-center gap-2.5 mb-6">
+            <div className="w-2 h-2 rounded-full bg-gradient-to-br from-indigo-500 to-green-500" />
+            <h3 className="text-[15px] font-semibold text-slate-900 dark:text-slate-100">Tasks Created (Last 7 Days)</h3>
           </div>
-          <div >
-            <FilterBar />
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barData} barCategoryGap="20%">
+                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Bar dataKey="created" fill={CHART_COLORS.primary} radius={[6, 6, 0, 0]} name="Created" />
+                <Bar dataKey="completed" fill={CHART_COLORS.success} radius={[6, 6, 0, 0]} name="Completed" />
+                <Bar dataKey="inProgress" fill={CHART_COLORS.accent} radius={[6, 6, 0, 0]} name="In Progress" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
-
-        {/* Task List */}
-        <TaskList />
-
-        {/* Pagination */}
-        <Pagination />
       </div>
+
+
+      {/* Recent Tasks Section */}
+      <RecentTasks />
     </div>
   );
 };

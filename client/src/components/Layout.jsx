@@ -5,17 +5,10 @@ import { TaskProvider } from '../context/TaskContext';
 const Layout = () => {
   return (
     <TaskProvider>
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: 'var(--bg-primary)',
-        }}
-      >
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
         <Header />
-        <main style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: '100%', maxWidth: '1152px', margin: '0 auto', padding: '40px 48px' }}>
+        <main className="flex-1 flex justify-center">
+          <div className="w-full max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-12">
             <Outlet />
           </div>
         </main>

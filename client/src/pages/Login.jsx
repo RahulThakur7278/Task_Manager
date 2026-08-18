@@ -9,11 +9,12 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    const target = user?.role === 'admin' ? '/' : '/user/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   const handleSubmit = async (e) => {
@@ -26,9 +27,13 @@ const Login = () => {
 
     setLoading(true);
     try {
-      await login(email, password);
+      const res = await login(email, password);
       toast.success('Login successful!');
-      navigate('/');
+      if (res?.user?.role === 'admin') {
+        navigate('/');
+      } else {
+        navigate('/user/dashboard');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -38,8 +43,11 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f5f5f5] font-sans">
-      {/* Blue Header */}
-      <header className="text-white h-16 flex items-center justify-end px-6 shadow-md z-10 w-full gradient-primary">
+      {/* Gradient Header */}
+      <header className="h-16 flex items-center justify-between px-6 shadow-md z-10 w-full bg-gradient-to-br from-indigo-500 to-cyan-500 text-white">
+        <div className="flex items-center gap-2 font-bold text-lg tracking-wide">
+          <span>TaskFlow Admin</span>
+        </div>
         <Link to="/login" className="flex items-center gap-2 text-white font-medium hover:bg-white/10 px-4 py-2 rounded transition-colors no-underline uppercase text-sm tracking-wider">
           <HiArrowRightOnRectangle className="w-5 h-5" />
           Login
@@ -48,20 +56,19 @@ const Login = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 w-full">
-        <div className="bg-white rounded-md shadow-md w-full max-w-[450px]" style={{ padding: '2.5rem 2rem' }}>
-          <h1 className="text-2xl font-bold text-center text-gray-900" style={{ marginBottom: '2rem' }}>Login</h1>
+        <div className="bg-white rounded-md shadow-md w-full max-w-[450px] p-6">
+          <h1 className="text-2xl font-bold text-center bg-gradient-to-br from-indigo-500 to-cyan-500 bg-clip-text text-transparent mb-5">Login</h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col w-full">
 
             {/* Email Input */}
-            <div className="relative" style={{ marginBottom: '1.5rem' }}>
+            <div className="relative mb-4" >
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer"
-                style={{ padding: '1rem 0.75rem' }}
+                className="block py-3 w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer"
                 placeholder=" "
                 required
               />
@@ -74,14 +81,13 @@ const Login = () => {
             </div>
 
             {/* Password Input */}
-            <div className="relative" style={{ marginBottom: '1.5rem' }}>
+            <div className="relative mb-4">
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer pr-10"
-                style={{ padding: '1rem 0.75rem' }}
+                className="block w-full py-3  text-sm text-gray-900 bg-transparent rounded border border-gray-300 appearance-none focus:outline-none focus-visible:outline-none focus:ring-1 focus:ring-[#06b6d4] focus:border-[#06b6d4] peer pr-10"
                 placeholder=" "
                 required
               />
@@ -103,8 +109,8 @@ const Login = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full text-white font-medium rounded transition-all hover:opacity-90 active:scale-95 uppercase tracking-wider text-sm border-none cursor-pointer shadow-md disabled:opacity-70 disabled:cursor-not-allowed gradient-primary"
-              style={{ marginTop: '0.5rem', padding: '0.875rem' }}
+              disabled={loading}
+              className="w-full bg-gradient-to-br from-indigo-500 to-cyan-500 text-white py-2.5 rounded-lg font-semibold hover:opacity-90 transition-all shadow-md cursor-pointer disabled:opacity-75"
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
@@ -114,6 +120,12 @@ const Login = () => {
             Don't have an account?{' '}
             <Link to="/register" className="text-[#6366f1] hover:underline no-underline">
               Register
+            </Link>
+          </p>
+          <p className="text-center text-sm text-gray-600 mt-2">
+            Are you a team member?{' '}
+            <Link to="/user/login" className="text-blue-600 hover:underline">
+              User Login
             </Link>
           </p>
         </div>
