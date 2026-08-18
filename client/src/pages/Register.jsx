@@ -52,8 +52,11 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f5f5f5] font-sans">
-      {/* Blue Header */}
-      <header className="text-white h-16 flex items-center justify-end px-6 shadow-md z-10 w-full bg-blue-500">
+      {/* Gradient Header */}
+      <header className="h-16 flex items-center justify-between px-6 shadow-md z-10 w-full bg-gradient-to-br from-indigo-500 to-cyan-500 text-white">
+        <div className="flex items-center gap-2 font-bold text-lg tracking-wide">
+          <span>TaskFlow Admin</span>
+        </div>
         <Link to="/login" className="flex items-center gap-2 text-white font-medium hover:bg-white/10 px-4 py-2 rounded transition-colors no-underline uppercase text-sm tracking-wider">
           <HiArrowRightOnRectangle className="w-5 h-5" />
           Login
@@ -63,7 +66,7 @@ const Register = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 w-full">
         <div className="bg-white rounded-md shadow-md w-full max-w-[450px]" style={{ padding: '2.5rem 2rem' }}>
-          <h1 className="text-2xl font-bold text-center text-gray-900" style={{ marginBottom: '2rem' }}>Register</h1>
+          <h1 className="text-2xl font-bold text-center bg-gradient-to-br from-indigo-500 to-cyan-500 bg-clip-text text-transparent" style={{ marginBottom: '2rem' }}>Register</h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col w-full">
 
@@ -180,7 +183,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-500 text-white py-2 rounded cursor-pointer"
+              className="w-full bg-gradient-to-br from-indigo-500 to-cyan-500 text-white py-2.5 rounded-lg font-semibold hover:opacity-90 transition-all shadow-md cursor-pointer disabled:opacity-75"
             >
               {loading ? 'Registering...' : 'Register'}
             </button>
