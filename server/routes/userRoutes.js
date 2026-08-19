@@ -1,12 +1,14 @@
 import express from 'express';
-import { getUsers, addMember, addMemberSchema } from '../controllers/userController.js';
+import { getUsers, addMember, addMemberSchema, updateMember, getUserDashboard ,getTask} from '../controllers/userController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import validate from '../middleware/validate.js';
-import { updateMember } from '../controllers/userController.js';
-const router = express.Router();
 
+const router = express.Router();
 // All user routes require authentication
 router.use(authMiddleware);
+
+router.get('/dashboard', getUserDashboard);
+router.get('/get-task', getTask);
 
 router.route('/')
   .get(getUsers)
