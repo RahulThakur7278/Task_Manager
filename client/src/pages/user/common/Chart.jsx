@@ -3,17 +3,20 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, Carte
 import { useTheme } from '../../../context/ThemeContext';
 import { CHART_COLORS } from '../../../utils/constants';
 
-const Chart = () => {
+const Chart = ({ barData: liveBarData, stats }) => {
   const { theme } = useTheme();
 
-  // Mock data for UI
-  const pieData = [
+  const pieData = stats ? [
+    { name: 'Completed', value: stats.completedTasks || 0, color: CHART_COLORS.success },
+    { name: 'In Progress', value: stats.inProgressTasks || 0, color: CHART_COLORS.accent },
+    { name: 'Pending', value: stats.pendingTasks || 0, color: CHART_COLORS.warning },
+  ] : [
     { name: 'Completed', value: 16, color: CHART_COLORS.success },
     { name: 'In Progress', value: 4, color: CHART_COLORS.accent },
     { name: 'Pending', value: 8, color: CHART_COLORS.warning },
   ];
 
-  const barData = [
+  const barData = (liveBarData && liveBarData.length > 0) ? liveBarData : [
     { date: 'Mon', created: 3, completed: 2, inProgress: 1 },
     { date: 'Tue', created: 5, completed: 3, inProgress: 2 },
     { date: 'Wed', created: 2, completed: 1, inProgress: 1 },
