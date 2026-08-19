@@ -1,13 +1,40 @@
-import React from 'react';
-import { FiClock, FiMoreVertical } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiClock, FiMoreVertical, FiSearch, FiFilter, FiRefreshCw } from 'react-icons/fi';
+import api from '../../api/axios';
 
 const MyTask = () => {
-  const tasks = [
-    { id: 1, title: 'Design Landing Page', status: 'In Progress', priority: 'High', date: 'Aug 15, 2026' },
-    { id: 2, title: 'Implement Auth Flow', status: 'Pending', priority: 'Medium', date: 'Aug 16, 2026' },
-    { id: 3, title: 'Fix Navigation Bug', status: 'Completed', priority: 'High', date: 'Aug 14, 2026' },
-    { id: 4, title: 'Write API Documentation', status: 'Pending', priority: 'Low', date: 'Aug 18, 2026' },
-  ];
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchUserTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const params = {};
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (searchQuery) params.q = searchQuery;
+
+      const response = await api.get('/users/get-task', { params });
+      setTasks(response.data.tasks || []);
+    } catch (err) {
+      console.error('Error fetching user tasks:', err);
+      setError('Failed to fetch user tasks. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserTasks();
+  }, [statusFilter]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchUserTasks();
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -17,13 +44,53 @@ const MyTask = () => {
     }
   };
 
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case 'High': return 'text-red-600 bg-red-50 dark:bg-red-950/40 dark:text-red-400';
+      case 'Medium': return 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400';
+      default: return 'text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-400';
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Tasks</h2>
-        <button className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors shadow-sm">
-          Filter Tasks
-        </button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Tasks</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">View and manage tasks assigned to or created by you.</p>
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <form onSubmit={handleSearch} className="relative flex-1 sm:w-64">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+            />
+          </form>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="in progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+
+          <button
+            onClick={fetchUserTasks}
+            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+            title="Refresh tasks"
+          >
+            <FiRefreshCw className={loading ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
@@ -35,35 +102,57 @@ const MyTask = () => {
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Status</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Priority</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Due Date</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-300">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {tasks.map((task) => (
-                <tr key={task.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900 dark:text-white">{task.title}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                      {task.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{task.priority}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-1.5">
-                      <FiClock /> {task.date}
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    <div className="flex justify-center items-center gap-2">
+                      <FiRefreshCw className="animate-spin" />
+                      Loading user tasks...
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-                      <FiMoreVertical />
-                    </button>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan="4" className="px-6 py-8 text-center text-red-500 dark:text-red-400">
+                    {error}
                   </td>
                 </tr>
-              ))}
+              ) : tasks.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    No user tasks found.
+                  </td>
+                </tr>
+              ) : (
+                tasks.map((task) => (
+                  <tr key={task._id || task.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-gray-900 dark:text-white">{task.title}</p>
+                      {task.description && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">{task.description}</p>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                        {task.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${getPriorityBadge(task.priority)}`}>
+                        {task.priority || 'Medium'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-1.5">
+                        <FiClock /> {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

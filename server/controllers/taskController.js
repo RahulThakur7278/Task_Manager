@@ -47,14 +47,26 @@ export const getTasks = async (req, res, next) => {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
     const status = req.query.status || 'all';
     const search = req.query.q || '';
+    const userId = req.query.userId || req.user?._id;
 
-    // Build filter: Tasks they created OR tasks assigned to them
-    const filter = { $or: [{ user: req.user._id }, { assignees: req.user._id }] };
+    if (!userId) {
+      throw new AppError('User ID is required', 400);
+    }
+
+    // Build filter: Tasks created by user OR tasks assigned to user
+    let filter;
+    if (req.query.mode === 'created') {
+      filter = { user: userId };
+    } else if (req.query.mode === 'assigned') {
+      filter = { assignees: userId };
+    } else {
+      filter = { $or: [{ user: userId }, { assignees: userId }] };
+    }
 
     if (status !== 'all') {
-      if (status === 'completed') filter.status = 'Completed';
-      else if (status === 'pending') filter.status = 'Pending';
-      else if (status === 'in progress') filter.status = 'In Progress';
+      if (status.toLowerCase() === 'completed') filter.status = 'Completed';
+      else if (status.toLowerCase() === 'pending') filter.status = 'Pending';
+      else if (status.toLowerCase() === 'in progress' || status.toLowerCase() === 'inprogress') filter.status = 'In Progress';
     }
 
     if (search) {
@@ -66,6 +78,7 @@ export const getTasks = async (req, res, next) => {
 
     const tasks = await Task.find(filter)
       .populate('assignees', 'name email avatar')
+      .populate('user', 'name email avatar')
       .sort({ order: 1, createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
