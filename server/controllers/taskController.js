@@ -183,7 +183,6 @@ export const reorderTasks = async (req, res, next) => {
 export const getAnalytics = async (req, res, next) => {
   try {
     const userId = req.user._id;
-
     // Get total counts
     const [total, completedCount, inProgressCount, pendingCount] = await Promise.all([
       Task.countDocuments({ $or: [{ user: userId }, { assignees: userId }] }),
@@ -256,7 +255,9 @@ export const getAnalytics = async (req, res, next) => {
 
 export const getRecentTasks = async (req, res, next) => {
   try {
-    const recentTasks = await Task.find()
+    const userId = req.user._id;
+
+    const recentTasks = await Task.find({ $or: [{ user: userId }, { assignees: userId }] })
       .select('title status priority createdAt dueDate')
       .sort({ createdAt: -1 })
       .limit(10);

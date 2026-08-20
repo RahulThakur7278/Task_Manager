@@ -19,8 +19,9 @@ export const addMemberSchema = z.object({
  */
 export const getUsers = async (req, res, next) => {
   try {
-    // Find all users (excluding passwords)
-    const users = await User.find({}).select('-password');
+    const userId = req.user._id;
+    // Find all users (excluding passwords) that were created by this admin, OR the admin themselves
+    const users = await User.find({ $or: [{ createdBy: userId }, { _id: userId }] }).select('-password');
 
     // Aggregate tasks to get counts per user
     const taskStats = await Task.aggregate([
@@ -98,6 +99,7 @@ export const addMember = async (req, res, next) => {
       password,
       avatar,
       role: 'user',
+      createdBy: req.user._id, // Tracks which admin created this user
     });
 
     res.status(201).json({
