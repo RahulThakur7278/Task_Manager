@@ -19,8 +19,9 @@ export const addMemberSchema = z.object({
  */
 export const getUsers = async (req, res, next) => {
   try {
-    // Find all users (excluding passwords)
-    const users = await User.find({}).select('-password');
+    const userId = req.user._id;
+    // Find all users (excluding passwords) that were created by this admin, OR the admin themselves
+    const users = await User.find({ $or: [{ createdBy: userId }, { _id: userId }] }).select('-password');
 
     // Aggregate tasks to get counts per user
     const taskStats = await Task.aggregate([
@@ -98,6 +99,7 @@ export const addMember = async (req, res, next) => {
       password,
       avatar,
       role: 'user',
+      createdBy: req.user._id, // Tracks which admin created this user
     });
 
     res.status(201).json({
@@ -134,6 +136,151 @@ export const updateMember = async (req, res, next) => {
     res.json({
       success: true,
       user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get user-specific dashboard statistics & analytics
+ * @route   GET /api/users/dashboard
+ * @access  Private (Logged-in user)
+ */
+export const getUserDashboard = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+
+    // Filter tasks created by or assigned to this user
+    const userTaskFilter = {
+      $or: [{ user: userId }, { assignees: userId }],
+    };
+
+    // Calculate total, pending, in-progress, completed counts and fetch recent tasks
+    const [totalTasks, pendingTasks, inProgressTasks, completedTasks, recentTasks] = await Promise.all([
+      Task.countDocuments(userTaskFilter),
+      Task.countDocuments({ ...userTaskFilter, status: 'Pending' }),
+      Task.countDocuments({ ...userTaskFilter, status: 'In Progress' }),
+      Task.countDocuments({ ...userTaskFilter, status: 'Completed' }),
+      Task.find(userTaskFilter)
+        .select('title status priority createdAt dueDate')
+        .sort({ createdAt: -1 })
+        .limit(5),
+    ]);
+
+    // Calculate weekly stats for the bar chart
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const dailyCreated = await Task.aggregate([
+      {
+        $match: {
+          ...userTaskFilter,
+          createdAt: { $gte: sevenDaysAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+          },
+          created: { $sum: 1 },
+          completed: {
+            $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] },
+          },
+          inProgress: {
+            $sum: { $cond: [{ $eq: ['$status', 'In Progress'] }, 1, 0] },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const barData = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(sevenDaysAgo);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayName = daysOfWeek[date.getDay()];
+      const dayData = dailyCreated.find((d) => d._id === dateStr);
+      barData.push({
+        date: dayName,
+        created: dayData?.created || 0,
+        completed: dayData?.completed || 0,
+        inProgress: dayData?.inProgress || 0,
+      });
+    }
+
+    res.json({
+      success: true,
+      stats: {
+        totalTasks,
+        pendingTasks,
+        inProgressTasks,
+        completedTasks,
+      },
+      recentTasks,
+      barData,
+      user: {
+        name: req.user.name,
+        email: req.user.email,
+        avatar: req.user.avatar,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTask = async (req, res, next) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+    const status = req.query.status || 'all';
+    const search = req.query.q || '';
+    const userId = req.query.userId || req.user?._id;
+    if (!userId) {
+      throw new AppError('User ID is required', 400);
+    }
+
+    // Build filter: Tasks created by user OR tasks assigned to user
+    let filter;
+    if (req.query.mode === 'created') {
+      filter = { user: userId };
+    } else if (req.query.mode === 'assigned') {
+      filter = { assignees: userId };
+    } else {
+      filter = { $or: [{ user: userId }, { assignees: userId }] };
+    }
+
+    if (status !== 'all') {
+      if (status.toLowerCase() === 'completed') filter.status = 'Completed';
+      else if (status.toLowerCase() === 'pending') filter.status = 'Pending';
+      else if (status.toLowerCase() === 'in progress' || status.toLowerCase() === 'inprogress') filter.status = 'In Progress';
+    }
+
+    if (search) {
+      filter.title = { $regex: search, $options: 'i' };
+    }
+
+    const totalTasks = await Task.countDocuments(filter);
+    const totalPages = Math.ceil(totalTasks / limit);
+
+    const tasks = await Task.find(filter)
+      .populate('assignees', 'name email avatar')
+      .populate('user', 'name email avatar')
+      .sort({ order: 1, createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      success: true,
+      tasks,
+      page,
+      totalPages,
+      totalTasks,
     });
   } catch (error) {
     next(error);
