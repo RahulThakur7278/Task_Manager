@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'user'],
       default: 'admin',
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
   { timestamps: true }
 );
