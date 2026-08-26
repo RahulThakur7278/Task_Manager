@@ -61,14 +61,14 @@ const RecentTasks = () => {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
             <tr>
-              <th className="pb-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Name</th>
-              <th className="pb-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Status</th>
-              <th className="pb-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Priority</th>
-              <th className="pb-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Created On</th>
-              <th className='pb-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700'>Due Date</th>
+              <th className="pb-4 pr-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Name</th>
+              <th className="pb-4 px-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Status</th>
+              <th className="pb-4 px-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Priority</th>
+              <th className="pb-4 px-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Created On</th>
+              <th className="pb-4 pl-4 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Due Date</th>
             </tr>
           </thead>
           <tbody>
@@ -92,23 +92,23 @@ const RecentTasks = () => {
 
                 return (
                   <tr key={task._id} className={index !== tasks.length - 1 ? 'border-b border-slate-100 dark:border-slate-700/50' : ''}>
-                    <td className="py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
+                    <td className="py-4 pr-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
                       {task.title}
                     </td>
-                    <td className="py-4">
+                    <td className="py-4 px-4">
                       <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${getStatusStyles(task.status)}`}>
                         {task.status || 'Pending'}
                       </span>
                     </td>
-                    <td className="py-4">
+                    <td className="py-4 px-4">
                       <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${getPriorityStyles(task.priority)}`}>
                         {task.priority || 'Low'}
                       </span>
                     </td>
-                    <td className="py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
+                    <td className="py-4 px-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
                       {createdOn}
                     </td>
-                    <td className='py-4 text-sm font-semibold text-slate-600 dark:text-slate-400'>
+                    <td className="py-4 pl-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
                       {dueDate}
                     </td>
                   </tr>
