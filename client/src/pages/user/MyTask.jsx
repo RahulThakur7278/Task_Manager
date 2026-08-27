@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FiClock, FiMoreVertical, FiSearch, FiFilter, FiRefreshCw } from 'react-icons/fi';
+import { FiClock, FiMoreVertical, FiSearch, FiFilter, FiRefreshCw, FiEye } from 'react-icons/fi';
 import api from '../../api/axios';
+import UserTaskDetailsModal from '../../components/UserTaskDetailsModal';
 
 const MyTask = () => {
   const [tasks, setTasks] = useState([]);
@@ -8,6 +9,7 @@ const MyTask = () => {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const fetchUserTasks = async () => {
     try {
@@ -102,12 +104,13 @@ const MyTask = () => {
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Status</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Priority</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Due Date</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {loading ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     <div className="flex justify-center items-center gap-2">
                       <FiRefreshCw className="animate-spin" />
                       Loading user tasks...
@@ -116,13 +119,13 @@ const MyTask = () => {
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-8 text-center text-red-500 dark:text-red-400">
+                  <td colSpan="5" className="px-6 py-8 text-center text-red-500 dark:text-red-400">
                     {error}
                   </td>
                 </tr>
               ) : tasks.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     No user tasks found.
                   </td>
                 </tr>
@@ -150,6 +153,15 @@ const MyTask = () => {
                         <FiClock /> {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}
                       </div>
                     </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => setSelectedTask(task)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-lg transition-colors"
+                      >
+                        <FiEye className="w-4 h-4" />
+                        View Details
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -157,8 +169,17 @@ const MyTask = () => {
           </table>
         </div>
       </div>
+
+      {/* Task Details Modal */}
+      <UserTaskDetailsModal
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        task={selectedTask}
+        onTaskUpdated={fetchUserTasks}
+      />
     </div>
   );
 };
 
 export default MyTask;
+
