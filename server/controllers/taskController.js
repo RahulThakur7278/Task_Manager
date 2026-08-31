@@ -127,6 +127,16 @@ export const updateTask = async (req, res, next) => {
     }
 
     Object.assign(task, req.body);
+    
+    if (task.checklist && task.checklist.length > 0) {
+      const allDone = task.checklist.every(item => item.completed);
+      if (allDone) {
+        task.status = 'Completed';
+      } else if (task.status === 'Completed' && !allDone) {
+        task.status = 'In Progress';
+      }
+    }
+    
     await task.save();
 
     const populatedTask = await Task.findById(task._id).populate('assignees', 'name email avatar');
@@ -265,6 +275,25 @@ export const getRecentTasks = async (req, res, next) => {
     res.json({
       success: true,
       recentTasks,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTaskById = async (req, res, next) => {
+  try {
+    const task = await Task.findById(req.params.id)
+      .populate('user', 'name email avatar')
+      .populate('assignees', 'name email avatar');
+
+    if (!task) {
+      throw new AppError('Task not found', 404);
+    }
+
+    res.json({
+      success: true,
+      task,
     });
   } catch (error) {
     next(error);
