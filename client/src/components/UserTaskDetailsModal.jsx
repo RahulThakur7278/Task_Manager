@@ -19,17 +19,39 @@ import {
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
-const UserTaskDetailsModal = ({ isOpen, onClose, task, onTaskUpdated }) => {
+const UserTaskDetailsModal = ({ isOpen, onClose, task: initialTask, onTaskUpdated }) => {
+  const [task, setTask] = useState(initialTask);
   const [localStatus, setLocalStatus] = useState('Pending');
   const [localChecklist, setLocalChecklist] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [loadingTask, setLoadingTask] = useState(false);
 
   useEffect(() => {
-    if (task) {
-      setLocalStatus(task.status || 'Pending');
-      setLocalChecklist(task.checklist ? JSON.parse(JSON.stringify(task.checklist)) : []);
+    if (initialTask) {
+      setTask(initialTask);
+      setLocalStatus(initialTask.status || 'Pending');
+      setLocalChecklist(initialTask.checklist ? JSON.parse(JSON.stringify(initialTask.checklist)) : []);
+
+      if (isOpen && initialTask._id) {
+        const fetchFullTask = async () => {
+          try {
+            setLoadingTask(true);
+            const res = await api.get(`/tasks/${initialTask._id}`);
+            const fullTask = res.data.task;
+            setTask(fullTask);
+            setLocalStatus(fullTask.status || 'Pending');
+            setLocalChecklist(fullTask.checklist ? JSON.parse(JSON.stringify(fullTask.checklist)) : []);
+          } catch (err) {
+            console.error('Failed to fetch full task details:', err);
+            toast.error('Failed to fetch task details');
+          } finally {
+            setLoadingTask(false);
+          }
+        };
+        fetchFullTask();
+      }
     }
-  }, [task, isOpen]);
+  }, [initialTask, isOpen]);
 
   if (!isOpen || !task) return null;
 
@@ -60,9 +82,19 @@ const UserTaskDetailsModal = ({ isOpen, onClose, task, onTaskUpdated }) => {
   };
 
   const handleToggleChecklist = (indexToToggle) => {
-    setLocalChecklist(prev => prev.map((item, idx) => 
-      idx === indexToToggle ? { ...item, completed: !item.completed } : item
-    ));
+    setLocalChecklist(prev => {
+      const newList = prev.map((item, idx) => 
+        idx === indexToToggle ? { ...item, completed: !item.completed } : item
+      );
+      
+      if (newList.length > 0 && newList.every(item => item.completed)) {
+        setLocalStatus('Completed');
+      } else if (localStatus === 'Completed' && newList.some(item => !item.completed)) {
+        setLocalStatus('In Progress');
+      }
+      
+      return newList;
+    });
   };
 
   const handleSave = async () => {

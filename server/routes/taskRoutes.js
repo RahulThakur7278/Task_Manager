@@ -10,6 +10,7 @@ import {
   createTaskSchema,
   updateTaskSchema,
   reorderSchema,
+  getTaskById,
 } from '../controllers/taskController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import validate from '../middleware/validate.js';
@@ -20,11 +21,12 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get('/analytics', getAnalytics);
+router.get('/recent-tasks', getRecentTasks);
 router.get('/', getTasks);
 router.post('/', validate(createTaskSchema), createTask);
 router.put('/reorder', validate(reorderSchema), reorderTasks);
+router.get('/:id', getTaskById);
 router.put('/:id', validate(updateTaskSchema), updateTask);
 router.delete('/:id', deleteTask);
-router.get('/recent-tasks', getRecentTasks);
 
 export default router;

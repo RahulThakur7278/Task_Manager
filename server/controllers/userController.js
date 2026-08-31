@@ -269,12 +269,11 @@ export const getTask = async (req, res, next) => {
     const totalPages = Math.ceil(totalTasks / limit);
 
     const tasks = await Task.find(filter)
-      .populate('assignees', 'name email avatar')
-      .populate('user', 'name email avatar')
+      .select('title description priority status dueDate')
       .sort({ order: 1, createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
-
+    console.log("all tasks", tasks)
     res.json({
       success: true,
       tasks,
