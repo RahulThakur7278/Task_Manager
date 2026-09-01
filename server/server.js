@@ -5,8 +5,10 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 
 import connectDB from './config/db.js';
+import logger from './config/logger.js';
 import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -35,6 +37,15 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 // Middleware
+app.use(helmet());
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.http(`${req.method} ${req.originalUrl || req.url} ${res.statusCode} - ${duration}ms`);
+  });
+  next();
+});
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -81,16 +92,16 @@ app.use(errorHandler);
 
 // Global process error safety handlers to prevent process crashes & ECONNRESET
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('⚠️ Unhandled Promise Rejection:', reason);
+  logger.error('⚠️ Unhandled Promise Rejection:', reason);
 });
 
 process.on('uncaughtException', (err) => {
-  console.error('⚠️ Uncaught Exception:', err);
+  logger.error('⚠️ Uncaught Exception:', err);
 });
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    logger.info(`🚀 Server running on port ${PORT}`);
   });
 }
 

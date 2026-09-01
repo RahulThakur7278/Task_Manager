@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { FiHome, FiCheckSquare } from 'react-icons/fi';
-import { HiArrowRightOnRectangle } from 'react-icons/hi2';
+import { HiArrowRightOnRectangle, HiOutlineBars3, HiXMark } from 'react-icons/hi2';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../../components/ThemeToggle';
 
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const getInitials = (fullName) => {
     if (!fullName) return 'U';
@@ -79,13 +81,60 @@ const Header = () => {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer border-none text-red-500 hover:bg-red-500/10"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer border-none text-red-500 hover:bg-red-500/10"
             >
               <HiArrowRightOnRectangle className="w-5 h-5 text-red-500" />
-              <span className="hidden sm:inline">Logout</span>
+              <span>Logout</span>
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg cursor-pointer border-none text-slate-700 dark:text-slate-200"
+            >
+              {mobileMenuOpen ? <HiXMark className="w-6 h-6" /> : <HiOutlineBars3 className="w-6 h-6" />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-3 border-t border-gray-200 dark:border-gray-800 animate-in fade-in slide-in-from-top-2">
+            <nav className="flex flex-col space-y-2">
+              <NavLink
+                to="/user/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50'
+                  }`
+                }
+              >
+                <FiHome className="text-lg" /> Dashboard
+              </NavLink>
+              <NavLink
+                to="/user/my-tasks"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50'
+                  }`
+                }
+              >
+                <FiCheckSquare className="text-lg" /> My Tasks
+              </NavLink>
+              <button
+                onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer border-none text-left text-red-500 hover:bg-red-500/10"
+              >
+                <HiArrowRightOnRectangle className="w-5 h-5" />
+                Logout
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
