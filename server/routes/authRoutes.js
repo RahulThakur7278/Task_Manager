@@ -5,6 +5,7 @@ import {
   logout,
   refreshAccessToken,
   getMe,
+  logoutAllDevices,
   registerSchema,
   loginSchema,
 } from '../controllers/authController.js';
@@ -16,6 +17,7 @@ const router = express.Router();
 router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
 router.post('/logout', logout);
+router.post('/logout-all', authMiddleware, logoutAllDevices);
 router.post('/refresh', refreshAccessToken);
 router.get('/me', authMiddleware, getMe);
 
