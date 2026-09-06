@@ -40,8 +40,8 @@ export const register = async (req, res, next) => {
       throw new AppError('User with this email already exists', 400);
     }
     const user = await User.create({ name, email, phone, password, role: 'admin' });
-    const accessToken = generateAccessToken(user._id, user.role);
-    const refreshToken = generateRefreshToken(user._id, user.role);
+    const accessToken = generateAccessToken(user._id, user.role, user.tokenVersion);
+    const refreshToken = generateRefreshToken(user._id, user.role, user.tokenVersion);
 
     res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
@@ -80,8 +80,8 @@ export const login = async (req, res, next) => {
       throw new AppError('Invalid email or password', 401);
     }
 
-    const accessToken = generateAccessToken(user._id, user.role);
-    const refreshToken = generateRefreshToken(user._id, user.role);
+    const accessToken = generateAccessToken(user._id, user.role, user.tokenVersion);
+    const refreshToken = generateRefreshToken(user._id, user.role, user.tokenVersion);
 
     res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
@@ -134,7 +134,11 @@ export const refreshAccessToken = async (req, res, next) => {
       throw new AppError('User not found', 401);
     }
 
-    const accessToken = generateAccessToken(user._id, user.role);
+    if (user.tokenVersion !== decoded.tokenVersion) {
+      throw new AppError('Invalid or expired refresh token', 401);
+    }
+
+    const accessToken = generateAccessToken(user._id, user.role, user.tokenVersion);
 
     res.json({
       success: true,
@@ -169,5 +173,20 @@ export const getMe = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+export const logoutAllDevices = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.tokenVersion += 1;
+      await user.save();
+      res.json({ message: 'Logged out from all devices successfully' });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
   }
 };
