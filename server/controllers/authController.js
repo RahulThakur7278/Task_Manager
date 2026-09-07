@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import AppError from '../utils/AppError.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
+import transporter from '../config/mail.js';
 
 // Zod schemas
 export const registerSchema = z.object({
@@ -38,6 +39,31 @@ export const register = async (req, res, next) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new AppError('User with this email already exists', 400);
+    }
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Welcome to Task Manager - Registration Successful',
+      html: `
+        <h3>Hello ${name},</h3>
+        <p>Congratulations! Your Admin account has been successfully created on the Task Manager platform.</p>
+        <p>Here are your registration details:</p>
+        <ul>
+          <li><strong>Email:</strong> ${email}</li>
+          <li><strong>Password:</strong> ${password}</li>
+        </ul>
+        <p>You can now log in and start managing your team.</p>
+        <br>
+        <p>Best Regards,<br>Task Manager Team</p>
+      `,
+    };
+
+    try {
+      // Use await to make sure the email actually sends successfully
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+      throw new AppError('Failed to send welcome email. Admin account was not created. Please check email configuration.', 500);
     }
     const user = await User.create({ name, email, phone, password, role: 'admin' });
     const accessToken = generateAccessToken(user._id, user.role, user.tokenVersion);

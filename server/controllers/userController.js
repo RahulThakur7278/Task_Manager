@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import Task from '../models/Task.js';
 import AppError from '../utils/AppError.js';
 import bcrypt from 'bcryptjs';
+import transporter from '../config/mail.js';
 
 // Schema for adding a new team member
 export const addMemberSchema = z.object({
@@ -92,6 +93,34 @@ export const addMember = async (req, res, next) => {
     // Generate a default avatar if none provided (using UI Avatars or Pravatar)
     const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
+    // 1. Try sending the welcome email first
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Welcome to Task Manager - Your Login Credentials',
+      html: `
+        <h3>Hello ${name},</h3>
+        <p>An account has been created for you on the Task Manager platform.</p>
+        <p>You can log in using the following credentials:</p>
+        <ul>
+          <li><strong>Email:</strong> ${email}</li>
+          <li><strong>Password:</strong> ${password}</li>
+        </ul>
+        <p>Please log in and we recommend you change your password as soon as possible.</p>
+        <br>
+        <p>Best Regards,<br>Task Manager Team</p>
+      `,
+    };
+
+    try {
+      // Use await to make sure the email actually sends successfully
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+      throw new AppError('Failed to send welcome email. Member was not created. Please check email configuration.', 500);
+    }
+
+    // 2. If the email was successful, create the member in the database
     const user = await User.create({
       name,
       email,
