@@ -18,6 +18,10 @@ const authMiddleware = async (req, res, next) => {
       throw new AppError('Not authorized — user not found', 401);
     }
 
+    if (user.tokenVersion !== decoded.tokenVersion) {
+      throw new AppError('Not authorized — token revoked', 401);
+    }
+
     req.user = user;
     next();
   } catch (error) {
